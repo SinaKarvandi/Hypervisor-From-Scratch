@@ -1,0 +1,4 @@
+﻿  stdafx.cpp
+  MyHypervisorApp.cpp
+c:\users\sina\desktop\hypervisor\myhypervisorapp\myhypervisorapp\myhypervisorapp.cpp(67): warning C4102: 'VMXNotSupport': unreferenced label
+  MyHypervisorApp.vcxproj -> C:\Users\Sina\Desktop\Hypervisor\MyHypervisorApp\Debug\MyHypervisorApp.exe
