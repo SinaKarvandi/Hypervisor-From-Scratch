@@ -23,8 +23,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPa
 
 	DbgPrint("DriverEntry Called.");
 
-	RtlInitUnicodeString(&usDriverName, L"\Device\Example");
-	RtlInitUnicodeString(&usDosDeviceName, L"\DosDevices\Example");
+	RtlInitUnicodeString(&usDriverName, L"\\Device\\Example");
+	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\Example");
 
 	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
 
@@ -44,9 +44,9 @@ VOID Example_Unload(PDRIVER_OBJECT  DriverObject)
 	MainAsm();
 	UNICODE_STRING usDosDeviceName;
 
-	DbgPrint("Example_Unload Called rn");
+	DbgPrint("Example_Unload Called \n");
 
-	RtlInitUnicodeString(&usDosDeviceName, L"\DosDevices\Example");
+	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\Example");
 	IoDeleteSymbolicLink(&usDosDeviceName);
 
 	IoDeleteDevice(DriverObject->DeviceObject);
