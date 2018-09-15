@@ -1,0 +1,83 @@
+﻿C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(113,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.props" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.Shared.props (360,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(187,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.targets" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.common.targets (1839,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+  Building 'MyHypervisorDriver' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Release\MyHypervisorDriver.inf
+  Stamping [Version] section with DriverVer=09/15/2018,23.21.50.492
+  Assembling Main.asm...
+  Memory.c
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(9): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(10): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(11): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(12): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(13): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(14): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(15): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(16): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(23): warning C4047: 'return': 'UINT64' differs in levels of indirection from 'PVOID'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(27): warning C4459: declaration of 'vmState' hides global declaration
+  c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\common.h(10): note: see declaration of 'vmState'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(54): warning C4047: 'initializing': 'UINT64' differs in levels of indirection from 'BYTE *'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(56): warning C4047: 'initializing': 'UINT64' differs in levels of indirection from 'BYTE *'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(41): warning C4189: 'Lowest': local variable is initialized but not referenced
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(87): warning C4459: declaration of 'vmState' hides global declaration
+  c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\common.h(10): note: see declaration of 'vmState'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(113): warning C4047: 'initializing': 'UINT64' differs in levels of indirection from 'BYTE *'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(115): warning C4047: 'initializing': 'UINT64' differs in levels of indirection from 'BYTE *'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\memory.c(101): warning C4189: 'Lowest': local variable is initialized but not referenced
+  Driver.c
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(11): warning C4100: 'pRegistryPath': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(54): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(70): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(81): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(92): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(107): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(360): warning C4047: 'function': 'PCSTR' differs in levels of indirection from 'NTSTATUS'
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\driver.c(360): warning C4024: 'DbgPrint': different types for formal and actual parameter 1
+  Processor.c
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(9): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(10): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(11): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(12): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(13): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(14): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(15): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(16): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\processor.c(33): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
+  VMX.c
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(9): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(10): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(11): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(12): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(13): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(14): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(15): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\cpu.h(16): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\vmx.c(26): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\vmx.c(55): warning C4267: 'function': conversion from 'size_t' to 'int', possible loss of data
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\vmx.c(61): warning C4022: 'MmFreeContiguousMemory': pointer mismatch for actual parameter 1
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\vmx.c(62): warning C4022: 'MmFreeContiguousMemory': pointer mismatch for actual parameter 1
+  Generating Code...
+c:\users\sina\desktop\hypervisor from scratch\myhypervisordriver\myhypervisordriver\vmx.c(45): warning C4715: 'Initiate_VMX': not all control paths return a value
+  MyHypervisorDriver.vcxproj -> C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\x64\Release\MyHypervisorDriver.sys
+C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(113,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.props" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.Shared.props (360,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(187,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.targets" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.common.targets (1839,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+  Done Adding Additional Store
+  Successfully signed: C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\x64\Release\MyHypervisorDriver.sys
+  
+  Driver is a Universal Driver.
+  ........................
+  Signability test complete.
+  
+  Errors:
+  None
+  
+  Warnings:
+  None
+  
+  Catalog generation complete.
+  C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\x64\Release\MyHypervisorDriver\myhypervisordriver.cat
+C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(113,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.props" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.Shared.props (360,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(187,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.targets" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.common.targets (1839,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+  Done Adding Additional Store
+  Successfully signed: C:\Users\Sina\Desktop\Hypervisor From Scratch\MyHypervisorDriver\x64\Release\MyHypervisorDriver\myhypervisordriver.cat
+  
