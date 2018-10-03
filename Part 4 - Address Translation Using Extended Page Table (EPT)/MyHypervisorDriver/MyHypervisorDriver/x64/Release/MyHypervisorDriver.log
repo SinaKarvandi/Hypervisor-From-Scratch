@@ -1,0 +1,90 @@
+﻿C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(113,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.props" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.Shared.props (360,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(188,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.targets" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.common.targets (1839,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+  Building 'MyHypervisorDriver' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Release\MyHypervisorDriver.inf
+  Stamping [Version] section with DriverVer=10/04/2018,0.28.11.846
+  Driver.c
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(11): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(12): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(13): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(14): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(15): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(16): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(26): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(27): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(28): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(29): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(30): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(31): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(32): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(33): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(34): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(35): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(36): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(46): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(47): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(48): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(49): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(50): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(51): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(52): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(53): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(54): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(55): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(56): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(65): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(66): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(67): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(68): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(69): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(70): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(71): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(72): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(73): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(74): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(75): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(83): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(84): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(85): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(86): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(87): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(88): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(89): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(90): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(91): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(92): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(93): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(94): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(95): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\ept.h(96): warning C4214: nonstandard extension used: bit field types other than int
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(10): warning C4100: 'pRegistryPath': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(53): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(72): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(83): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(94): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(109): warning C4100: 'DeviceObject': unreferenced formal parameter
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(356): warning C4047: 'function': 'PCSTR' differs in levels of indirection from 'NTSTATUS'
+c:\users\sina\desktop\hypervisor from scratch - copy\myhypervisordriver\myhypervisordriver\driver.c(356): warning C4024: 'DbgPrint': different types for formal and actual parameter 1
+  MyHypervisorDriver.vcxproj -> C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\x64\Release\MyHypervisorDriver.sys
+C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(113,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.props" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.Shared.props (360,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(188,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.targets" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.common.targets (1839,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+  Done Adding Additional Store
+  Successfully signed: C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\x64\Release\MyHypervisorDriver.sys
+  
+  Driver is a Universal Driver.
+  .........................
+  Signability test complete.
+  
+  Errors:
+  None
+  
+  Warnings:
+  None
+  
+  Catalog generation complete.
+  C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\x64\Release\MyHypervisorDriver\myhypervisordriver.cat
+C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(113,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.props" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.Shared.props (360,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\MyHypervisorDriver\MyHypervisorDriver.vcxproj(188,5): warning MSB4011: "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\BuildCustomizations\masm.targets" cannot be imported again. It was already imported at "C:\Program Files (x86)\Windows Kits\10\build\WindowsDriver.common.targets (1839,3)". This is most likely a build authoring error. This subsequent import will be ignored. 
+  Done Adding Additional Store
+  Successfully signed: C:\Users\Sina\Desktop\Hypervisor From Scratch - Copy\MyHypervisorDriver\x64\Release\MyHypervisorDriver\myhypervisordriver.cat
+  
