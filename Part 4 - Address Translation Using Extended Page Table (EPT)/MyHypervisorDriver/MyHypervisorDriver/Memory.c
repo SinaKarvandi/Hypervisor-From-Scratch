@@ -10,7 +10,7 @@
 #define VMCS_SIZE   4096
 #define VMXON_SIZE   4096
 
-UINT64 VirtualAddress_to_PhysicallAddress(void* va)
+UINT64 VirtualAddress_to_PhysicalAddress(void* va)
 {
 	return MmGetPhysicalAddress(va).QuadPart;
 }
@@ -47,7 +47,7 @@ BOOLEAN Allocate_VMXON_Region(IN PVirtualMachineState vmState)
 		DbgPrint("[*] Error : Couldn't Allocate Buffer for VMXON Region.");
 		return FALSE;// ntStatus = STATUS_INSUFFICIENT_RESOURCES;
 	}
-	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicallAddress(Buffer);
+	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicalAddress(Buffer);
 
 	// zero-out memory 
 	RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
@@ -103,7 +103,7 @@ BOOLEAN Allocate_VMCS_Region(IN PVirtualMachineState vmState)
 
 	//BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
 
-	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicallAddress(Buffer);
+	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicalAddress(Buffer);
 	if (Buffer == NULL) {
 		DbgPrint("[*] Error : Couldn't Allocate Buffer for VMCS Region.");
 		return FALSE;// ntStatus = STATUS_INSUFFICIENT_RESOURCES;
