@@ -13,7 +13,6 @@ UINT64 Initialize_EPTP()
 	PEPTP EPTPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
 	if (!EPTPointer) {
-		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
 	}
 	RtlZeroMemory(EPTPointer, PAGE_SIZE);
@@ -21,7 +20,6 @@ UINT64 Initialize_EPTP()
 	//	Allocate EPT PML4
 	PEPT_PML4E EPT_PML4 = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 	if (!EPT_PML4) {
-		ExFreePoolWithTag(EPT_PML4, POOLTAG);
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
 	}
@@ -30,7 +28,6 @@ UINT64 Initialize_EPTP()
 	//	Allocate EPT Page-Directory-Pointer-Table
 	PEPT_PDPTE EPT_PDPT = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 	if (!EPT_PDPT) {
-		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
 		ExFreePoolWithTag(EPT_PML4, POOLTAG);
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
@@ -41,7 +38,6 @@ UINT64 Initialize_EPTP()
 	PEPT_PDE EPT_PD = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
 	if (!EPT_PD) {
-		ExFreePoolWithTag(EPT_PD, POOLTAG);
 		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
 		ExFreePoolWithTag(EPT_PML4, POOLTAG);
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
@@ -53,7 +49,6 @@ UINT64 Initialize_EPTP()
 	PEPT_PTE EPT_PT = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
 	if (!EPT_PT) {
-		ExFreePoolWithTag(EPT_PT, POOLTAG);
 		ExFreePoolWithTag(EPT_PD, POOLTAG);
 		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
 		ExFreePoolWithTag(EPT_PML4, POOLTAG);
@@ -73,11 +68,11 @@ UINT64 Initialize_EPTP()
 	{
 		EPT_PT[i].Fields.AccessedFlag = 0;
 		EPT_PT[i].Fields.DirtyFlag = 0;
-		EPT_PT[i].Fields.EPTMemoryType = 0;
+		EPT_PT[i].Fields.EPTMemoryType = 6;
 		EPT_PT[i].Fields.Execute = 1;
 		EPT_PT[i].Fields.ExecuteForUserMode = 0;
 		EPT_PT[i].Fields.IgnorePAT = 0;
-		EPT_PT[i].Fields.PhysicalAddress = (VirtualAddress_to_PhysicallAddress( Guest_Memory + ( i * PAGE_SIZE ))/ PAGE_SIZE );
+		EPT_PT[i].Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress( Guest_Memory + ( i * PAGE_SIZE ))/ PAGE_SIZE );
 		EPT_PT[i].Fields.Read = 1;
 		EPT_PT[i].Fields.SuppressVE = 0;
 		EPT_PT[i].Fields.Write = 1;
@@ -91,7 +86,7 @@ UINT64 Initialize_EPTP()
 	EPT_PD->Fields.Ignored1 = 0;
 	EPT_PD->Fields.Ignored2 = 0;
 	EPT_PD->Fields.Ignored3 = 0;
-	EPT_PD->Fields.PhysicalAddress = (VirtualAddress_to_PhysicallAddress(EPT_PT) / PAGE_SIZE);
+	EPT_PD->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PT) / PAGE_SIZE);
 	EPT_PD->Fields.Read = 1;
 	EPT_PD->Fields.Reserved1 = 0;
 	EPT_PD->Fields.Reserved2 = 0;
@@ -104,24 +99,11 @@ UINT64 Initialize_EPTP()
 	EPT_PDPT->Fields.Ignored1 = 0;
 	EPT_PDPT->Fields.Ignored2 = 0;
 	EPT_PDPT->Fields.Ignored3 = 0;
-	EPT_PDPT->Fields.PhysicalAddress = (VirtualAddress_to_PhysicallAddress(EPT_PD) / PAGE_SIZE);
+	EPT_PDPT->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PD) / PAGE_SIZE);
 	EPT_PDPT->Fields.Read = 1;
 	EPT_PDPT->Fields.Reserved1 = 0;
 	EPT_PDPT->Fields.Reserved2 = 0;
 	EPT_PDPT->Fields.Write = 1;
-
-	// Setting up PDE
-	EPT_PD->Fields.Accessed = 0;
-	EPT_PD->Fields.Execute = 1;
-	EPT_PD->Fields.ExecuteForUserMode = 0;
-	EPT_PD->Fields.Ignored1 = 0;
-	EPT_PD->Fields.Ignored2 = 0;
-	EPT_PD->Fields.Ignored3 = 0;
-	EPT_PD->Fields.PhysicalAddress = (VirtualAddress_to_PhysicallAddress(EPT_PDPT) / PAGE_SIZE);
-	EPT_PD->Fields.Read = 1;
-	EPT_PD->Fields.Reserved1 = 0;
-	EPT_PD->Fields.Reserved2 = 0;
-	EPT_PD->Fields.Write = 1;
 
 	// Setting up PML4E
 	EPT_PML4->Fields.Accessed = 0;
@@ -130,7 +112,7 @@ UINT64 Initialize_EPTP()
 	EPT_PML4->Fields.Ignored1 = 0;
 	EPT_PML4->Fields.Ignored2 = 0;
 	EPT_PML4->Fields.Ignored3 = 0;
-	EPT_PML4->Fields.PhysicalAddress = (VirtualAddress_to_PhysicallAddress(EPT_PD) / PAGE_SIZE);
+	EPT_PML4->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PDPT) / PAGE_SIZE);
 	EPT_PML4->Fields.Read = 1;
 	EPT_PML4->Fields.Reserved1 = 0;
 	EPT_PML4->Fields.Reserved2 = 0;
@@ -140,7 +122,7 @@ UINT64 Initialize_EPTP()
 	EPTPointer->Fields.DirtyAndAceessEnabled = 1;
 	EPTPointer->Fields.MemoryType = 6; // 6 = Write-back (WB)
 	EPTPointer->Fields.PageWalkLength = 3;  // 4 (tables walked) - 1 = 3 
-	EPTPointer->Fields.PML4Address = (VirtualAddress_to_PhysicallAddress(EPT_PML4) / PAGE_SIZE);
+	EPTPointer->Fields.PML4Address = (VirtualAddress_to_PhysicalAddress(EPT_PML4) / PAGE_SIZE);
 	EPTPointer->Fields.Reserved1 = 0;
 	EPTPointer->Fields.Reserved2 = 0;
 
