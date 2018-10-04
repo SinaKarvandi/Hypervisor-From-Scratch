@@ -160,7 +160,7 @@ extern int ProcessorCounts;
 
 PVirtualMachineState Initiate_VMX(void);
 void Terminate_VMX(void);
-UINT64 VirtualAddress_to_PhysicallAddress(void* va);
+UINT64 VirtualAddress_to_PhysicalAddress(void* va);
 UINT64 PhysicalAddress_to_VirtualAddress(UINT64 pa);
 BOOLEAN Allocate_VMXON_Region(IN PVirtualMachineState vmState);
 BOOLEAN Allocate_VMCS_Region(IN PVirtualMachineState vmState);
