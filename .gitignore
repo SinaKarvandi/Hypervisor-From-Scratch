@@ -1,0 +1,8 @@
+.vs/
+ipch/
+*.VC.db
+Debug/
+Release/
+Win32/
+x64/
+*.vcxproj.user
