@@ -11,3 +11,5 @@ Part 2 - Entering VMX Operation	: https://rayanfam.com/topics/hypervisor-from-sc
 Part 3 - Setting up Our First Virtual Machine	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-3/
 
 Part 4 - Address Translation Using Extended Page Table (EPT) : https://rayanfam.com/topics/hypervisor-from-scratch-part-4/
+
+Part 5 - Setting up VMCS &amp; Running Guest Code	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-5/
