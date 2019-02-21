@@ -13,3 +13,5 @@ Part 3 - Setting up Our First Virtual Machine	 : https://rayanfam.com/topics/hyp
 Part 4 - Address Translation Using Extended Page Table (EPT) : https://rayanfam.com/topics/hypervisor-from-scratch-part-4/
 
 Part 5 - Setting up VMCS &amp; Running Guest Code	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-5/
+
+Part 6 - Virtualizing An Already Running System	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-6/
