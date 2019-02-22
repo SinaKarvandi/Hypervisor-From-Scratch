@@ -33,7 +33,6 @@ BOOLEAN RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine)
 
 	OldIrql = KeRaiseIrqlToDpcLevel();
 
-	// Our routine is VMXOFF
 	Routine(ProcessorNumber, EPTP);
 
 	KeLowerIrql(OldIrql);
