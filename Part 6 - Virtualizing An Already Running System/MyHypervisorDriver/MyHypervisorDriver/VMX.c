@@ -397,30 +397,6 @@ Exit:
 }
 
 
-void HandleExceptionNMI()
-{
-	ULONG trap = 0;
-	ULONG64 rFlags = 0;
-	ULONG64 ExitInterruptionInformation = 0;
-
-	__vmx_vmread(VM_EXIT_INTR_INFO, &ExitInterruptionInformation);
-	trap = (ULONG)ExitInterruptionInformation & INTR_INFO_VECTOR_MASK;
-
-	switch (trap)
-	{
-	case TRAP_PAGE_FAULT:
-		break;
-	case TRAP_DEBUG:
-	{
-		__vmx_vmread(GUEST_RFLAGS, &rFlags);
-		rFlags = rFlags & ~FLAGS_TF_MASK & ~FLAGS_RF_MASK;
-		__vmx_vmwrite(GUEST_RFLAGS, rFlags);
-		break;
-	}
-	default:
-		break;
-	}
-}
 
 VOID ResumeToNextInstruction(VOID)
 {
@@ -828,7 +804,7 @@ BOOLEAN MainVMExitHandler(PGUEST_REGS GuestRegs)
 	}
 	case EXIT_REASON_EXCEPTION_NMI:
 	{
-		HandleExceptionNMI();
+		// HandleExceptionNMI();
 		break;
 	}
 	case EXIT_REASON_IO_INSTRUCTION:
