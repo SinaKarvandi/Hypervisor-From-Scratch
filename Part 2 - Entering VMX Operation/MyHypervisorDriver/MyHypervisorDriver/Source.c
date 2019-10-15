@@ -48,7 +48,7 @@ VOID DrvUnload(PDRIVER_OBJECT  DriverObject)
 {
 	UNICODE_STRING usDosDeviceName;
 	DbgPrint("[*] DrvUnload Called.");
-	RtlInitUnicodeString(&usDosDeviceName, L"\\Device\\MyHypervisorDevice");
+	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisorDevice");
 	IoDeleteSymbolicLink(&usDosDeviceName);
 	IoDeleteDevice(DriverObject->DeviceObject);
 
