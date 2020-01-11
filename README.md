@@ -63,6 +63,10 @@ Note: Please keep in mind that hypervisors change during the time because new fe
 In order to compile this project you have to use Windows Driver Kit (WDK), first install Visual Studio then install WDK then you can compile it.
 
 
+## Other Articles & Projects
+
+If you want to know more about the hypervisors, you can visit : https://github.com/Wenzel/awesome-virtualization
+
 <!-- LICENSE -->
 ## License
 
