@@ -13,7 +13,7 @@
   <p align="center">
     A tutorial from creating a hypervisor from scratch
     <br />
-    <a href="https://rayanfam.com/tutorials/"><strong>All parts »</strong></a>
+    <a href="https://rayanfam.com/tutorials/"><strong>All the parts »</strong></a>
     <br />
     <br />
     <a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-1/">Part 1</a>
