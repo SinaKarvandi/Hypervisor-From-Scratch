@@ -1,6 +1,4 @@
 [![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
@@ -34,7 +32,7 @@
   </p>
 </p>
 
-# Hypervisor-From-Scratch
+# Hypervisor From Scratch
 Source code of a multiple series of tutorials about hypervisor. 
 
 Available at: https://rayanfam.com/tutorials
