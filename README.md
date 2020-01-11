@@ -52,6 +52,21 @@ Part 6 - Virtualizing An Already Running System	 : https://rayanfam.com/topics/h
 
 Part 7 - Using EPT & Page-Level Monitoring Features	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-7/
 
+## Note
+
+Note: Please keep in mind that hypervisors change during the time because new features added to the operating systems or using new technologies, for example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, researches or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
+
+
+
+## Compile & Install
+
+In order to compile this project you have to use Windows Driver Kit (WDK), first install Visual Studio then install WDK then you can compile it.
+
+
+<!-- LICENSE -->
+## License
+
+Hypervisor From Scratch is licensed under a Creative Commons Attribution 4.0 International license.
 
 [contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=flat-square
 [contributors-url]: https://github.com/SinaKarvandi/Hypervisor-From-Scratch/graphs/contributors
