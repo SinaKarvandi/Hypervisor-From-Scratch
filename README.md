@@ -2,8 +2,6 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 <br />
@@ -55,3 +53,13 @@ Part 5 - Setting up VMCS &amp; Running Guest Code	 : https://rayanfam.com/topics
 Part 6 - Virtualizing An Already Running System	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-6/
 
 Part 7 - Using EPT & Page-Level Monitoring Features	 : https://rayanfam.com/topics/hypervisor-from-scratch-part-7/
+
+
+[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=flat-square
+[contributors-url]: https://github.com/SinaKarvandi/Hypervisor-From-Scratch/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=flat-square
+[forks-url]: https://github.com/SinaKarvandi/Hypervisor-From-Scratch/network/members
+[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=flat-square
+[stars-url]: https://github.com/SinaKarvandi/Hypervisor-From-Scratch/stargazers
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=flat-square
+[issues-url]: https://github.com/SinaKarvandi/Hypervisor-From-Scratch/issues
