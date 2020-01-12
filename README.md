@@ -28,7 +28,7 @@
     ·
 	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-6/">Part 6</a>
     ·
-	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-7/">Part 7</a>
+	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-7/">Part 7 (not yet published)</a>
   </p>
 </p>
 
@@ -62,7 +62,7 @@ Available at: https://rayanfam.com/tutorials
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-6/)
 
 
-**Part 7 - Using EPT & Page-Level Monitoring Features** 
+**Part 7 - Using EPT & Page-Level Monitoring Features** (not published)
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-7/)
 
 ## Note
