@@ -58,7 +58,7 @@ BOOLEAN HvVmxInitialize()
 	if (AsmVmxVmcall(VMCALL_TEST, 0x22, 0x333, 0x4444) == STATUS_SUCCESS)
 	{
 		///////////////// Test Hook after Vmx is launched /////////////////
-		EptPageHook(ExAllocatePoolWithTag, TRUE);
+		// EptPageHook(ExAllocatePoolWithTag, TRUE);
 		///////////////////////////////////////////////////////////////////
 		return TRUE;
 	}
