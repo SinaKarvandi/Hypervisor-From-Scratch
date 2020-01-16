@@ -360,7 +360,7 @@ VOID VmxVmresume()
 	DbgBreakPoint();
 }
 
-/* Resume vm using Vmresume instruction */
+/* Prepare and execute Vmxoff instruction */
 VOID VmxVmxoff()
 {
 	int CurrentProcessorIndex;
