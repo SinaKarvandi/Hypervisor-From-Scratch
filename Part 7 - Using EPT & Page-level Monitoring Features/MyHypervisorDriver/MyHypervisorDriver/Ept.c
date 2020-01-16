@@ -423,9 +423,9 @@ BOOLEAN EptLogicalProcessorInitialize()
 	// We will write the EPTP to the VMCS later 
 	EptState->EptPointer = EPTP;
 
-	///////////////////////// Example
-	//  EptPageHook(ExAllocatePoolWithTag, FALSE);
-	/////////////////////////
+	///////////////////////// Example Test /////////////////////////
+	 EptPageHook(ExAllocatePoolWithTag, FALSE);
+	////////////////////////////////////////////////////////////////
 
 	return TRUE;
 }
