@@ -424,7 +424,7 @@ BOOLEAN EptLogicalProcessorInitialize()
 	EptState->EptPointer = EPTP;
 
 	///////////////////////// Example
-	EptPageHook(KeInitializeSemaphore, FALSE);
+	//  EptPageHook(ExAllocatePoolWithTag, FALSE);
 	/////////////////////////
 
 	return TRUE;
