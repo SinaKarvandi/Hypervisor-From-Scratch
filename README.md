@@ -28,7 +28,7 @@
     ·
 	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-6/">Part 6</a>
     ·
-	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-7/">Part 7 (not yet published)</a>
+	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-7/">Part 7</a>
   </p>
 </p>
 
