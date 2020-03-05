@@ -83,7 +83,7 @@ If you want to know more about the hypervisors, you can visit : https://github.c
 <!-- LICENSE -->
 ## License
 
-Hypervisor From Scratch is licensed under a Creative Commons Attribution 1.0 license.
+Hypervisor From Scratch is licensed under a MIT license.
 
 [contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=flat-square
 [contributors-url]: https://github.com/SinaKarvandi/Hypervisor-From-Scratch/graphs/contributors
