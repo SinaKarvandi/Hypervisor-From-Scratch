@@ -83,7 +83,7 @@ In order to compile this project you have to use Windows Driver Kit (WDK), first
 
 ## Environment
 
-All the drivers are tested on both physical-machine and VMWare's nested virtualization, from part 8 support to Hyper-V is added, means that you can test part 8 and newer parts on physical-machine, VMWare nested virtualization and Hyper-V's nested virtualization.
+All the drivers are tested on both physical-machine and VMWare's nested virtualization, from part 8 support to Hyper-V is added, means that you can test part 8 and newer parts on physical-machine, VMWare's nested virtualization and Hyper-V's nested virtualization.
 
 
 ## Other Articles & Projects
