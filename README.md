@@ -29,6 +29,8 @@
 	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-6/">Part 6</a>
     ·
 	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-7/">Part 7</a>
+    ·
+	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-8/">Part 8 (not published yet)</a>
   </p>
 </p>
 
@@ -62,8 +64,12 @@ Available at: https://rayanfam.com/tutorials
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-6/)
 
 
-**Part 7 - Using EPT & Page-Level Monitoring Features** (not published)
+**Part 7 - Using EPT & Page-Level Monitoring Features** 
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-7/)
+
+
+**Part 8 - How To Do Magic With Hypervisor!** (not published)
+(https://rayanfam.com/topics/hypervisor-from-scratch-part-8/)
 
 ## Note
 
@@ -74,6 +80,10 @@ Note: Please keep in mind that hypervisors change during the time because new fe
 ## Compile & Install
 
 In order to compile this project you have to use Windows Driver Kit (WDK), first install Visual Studio then install WDK then you can compile it.
+
+## Environment
+
+All the drivers are tested on both physical-machine and VMWare's nested virtualization, from part 8 support to Hyper-V is added, means that you can test part 8 and newer parts on physical-machine, VMWare nested virtualization and Hyper-V's nested virtualization.
 
 
 ## Other Articles & Projects
