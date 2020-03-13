@@ -68,7 +68,7 @@ Available at: https://rayanfam.com/tutorials
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-7/)
 
 
-**Part 8 - How To Do Magic With Hypervisor!** (not published)
+**Part 8 - How To Do Magic With Hypervisor!** (not published yet)
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-8/)
 
 ## Note
