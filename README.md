@@ -91,23 +91,21 @@ All the drivers are tested on both physical-machine and VMWare's nested virtuali
 If you want to know more about the hypervisors, you can visit : https://github.com/Wenzel/awesome-virtualization
 
 ## Credits
-<p>
-This series is written by :<br />
-	<a href="https://twitter.com/Intel80x86">Sina Karvandi</a><br />
-	<a href="https://twitter.com/PetrBenes">Petr Beneš</a><br />
+ This series is written by :<br />
+- <a href="https://twitter.com/Intel80x86">Sina Karvandi</a><br />
+- <a href="https://twitter.com/PetrBenes">Petr Beneš</a><br />
 
-Special Thanks to these guys for their helps and contributions :<br />
-	<a href="https://twitter.com/aionescu">Alex Ionescu</a><br />
-	<a href="https://twitter.com/standa_t">Satoshi Tanda</a><br />
-	<a href="https://twitter.com/Liran_Alon">Liran Alon</a><br />
-	<a href="https://twitter.com/gerhart_x">gerhart</a><br />
-	<a href="https://twitter.com/daax_rynd">Daax Rynd</a><br />
-	<a href="https://twitter.com/LordNoteworthy">Noteworthy</a><br />
-	<a href="https://twitter.com/ivansprundel">ivs</a><br />
-	<a href="https://twitter.com/honorary_bot">Artem Shishkin</a><br />
-	<a href="https://twitter.com/Shahriare8">Shahriar</a><br />
-	<a href="https://twitter.com/amdgzi">Ahmad</a><br />
-</p>
+ Special Thanks to these guys for their helps and contributions :<br />
+- <a href="https://twitter.com/aionescu">Alex Ionescu</a><br />
+- <a href="https://twitter.com/standa_t">Satoshi Tanda</a><br />
+- <a href="https://twitter.com/Liran_Alon">Liran Alon</a><br />
+- <a href="https://twitter.com/gerhart_x">gerhart</a><br />
+- <a href="https://twitter.com/daax_rynd">Daax Rynd</a><br />
+- <a href="https://twitter.com/LordNoteworthy">Noteworthy</a><br />
+- <a href="https://twitter.com/ivansprundel">ivs</a><br />
+- <a href="https://twitter.com/honorary_bot">Artem Shishkin</a><br />
+- <a href="https://twitter.com/Shahriare8">Shahriar</a><br />
+- <a href="https://twitter.com/amdgzi">Ahmad</a><br />
 
 
 <!-- LICENSE -->
