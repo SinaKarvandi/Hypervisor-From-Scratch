@@ -106,7 +106,7 @@ If you want to know more about the hypervisors, you can visit : https://github.c
 - <a href="https://twitter.com/honorary_bot">Artem Shishkin</a><br />
 - <a href="https://twitter.com/Shahriare8">Shahriar</a><br />
 - <a href="https://twitter.com/amdgzi">Ahmad</a><br />
-- ...and many other people who helped solving the problems</a><br />
+- ...and many other people who helped to solve the problems</a><br />
 
 
 <!-- LICENSE -->
