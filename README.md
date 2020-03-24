@@ -30,7 +30,7 @@
     ·
 	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-7/">Part 7</a>
     ·
-	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-8/">Part 8 (not published yet)</a>
+	<a href="https://rayanfam.com/topics/hypervisor-from-scratch-part-8/">Part 8</a>
   </p>
 </p>
 
@@ -68,7 +68,7 @@ Available at: https://rayanfam.com/tutorials
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-7/)
 
 
-**Part 8 - How To Do Magic With Hypervisor!** (not published yet)
+**Part 8 - How To Do Magic With Hypervisor!**
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-8/)
 
 ## Note
