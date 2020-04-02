@@ -123,3 +123,10 @@ UINT64 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 	return MmGetVirtualForPhysical(PhysicalAddr);
 }
 
+/* Find cr3 of system process*/
+UINT64 FindSystemDirectoryTableBase()
+{
+	// Return CR3 of the system process.
+	NT_KPROCESS* SystemProcess = (NT_KPROCESS*)(PsInitialSystemProcess);
+	return SystemProcess->DirectoryTableBase;
+}
