@@ -257,6 +257,7 @@ BOOLEAN LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32* Retu
 		// Release the lock
 		KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
 	}
+	return TRUE;
 }
 
 /* return of this function shows whether the read was successfull or not (e.g FALSE shows there's no new buffer available.)*/
