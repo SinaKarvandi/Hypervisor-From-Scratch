@@ -3,66 +3,67 @@
 #include "Common.h"
 #include "Driver.h"
 
-PVirtualMachineState vmState;
-int ProcessorCounts;
+VIRTUAL_MACHINE_STATE * vmState;
+int                     ProcessorCounts;
 
-PVirtualMachineState Initiate_VMX(void) {
+VIRTUAL_MACHINE_STATE *
+InitializeVmx()
+{
+    if (!IsVmxSupported())
+    {
+        DbgPrint("[*] VMX is not supported in this machine !");
+        return NULL;
+    }
 
-	if (!Is_VMX_Supported())
-	{
-		DbgPrint("[*] VMX is not supported in this machine !");
-		return NULL;
-	}
+    ProcessorCounts = KeQueryActiveProcessorCount(0);
+    vmState         = ExAllocatePoolWithTag(NonPagedPool,
+                                    sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCounts,
+                                    POOLTAG);
 
-	ProcessorCounts = KeQueryActiveProcessorCount(0);
-	vmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VirtualMachineState)* ProcessorCounts, POOLTAG);
+    DbgPrint("\n=====================================================\n");
 
+    KAFFINITY kAffinityMask;
+    for (size_t i = 0; i < ProcessorCounts; i++)
+    {
+        kAffinityMask = ipow(2, i);
 
-	DbgPrint("\n=====================================================\n");
+        KeSetSystemAffinityThread(kAffinityMask);
 
-	KAFFINITY kAffinityMask;
-	for (size_t i = 0; i < ProcessorCounts; i++)
-	{
-		kAffinityMask = ipow(2, i);
-		KeSetSystemAffinityThread(kAffinityMask);
-		// do st here !
-		DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
+        DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
 
-		Enable_VMX_Operation();	// Enabling VMX Operation
-		DbgPrint("[*] VMX Operation Enabled Successfully !");
+        //
+        // Enabling VMX Operation
+        //
+        EnableVmxOperation();
 
-		Allocate_VMXON_Region(&vmState[i]);
-		Allocate_VMCS_Region(&vmState[i]);
+        DbgPrint("[*] VMX Operation Enabled Successfully !");
 
+        AllocateVmxonRegion(&vmState[i]);
+        AllocateVmcsRegion(&vmState[i]);
 
-		DbgPrint("[*] VMCS Region is allocated at  ===============> %llx", vmState[i].VMCS_REGION);
-		DbgPrint("[*] VMXON Region is allocated at ===============> %llx", vmState[i].VMXON_REGION);
+        DbgPrint("[*] VMCS Region is allocated at  ===============> %llx", vmState[i].VMCS_REGION);
+        DbgPrint("[*] VMXON Region is allocated at ===============> %llx", vmState[i].VMXON_REGION);
 
-		DbgPrint("\n=====================================================\n");
-
-	}
-
+        DbgPrint("\n=====================================================\n");
+    }
 }
 
+VOID
+TerminateVmx()
+{
+    DbgPrint("\n[*] Terminating VMX...\n");
 
-void Terminate_VMX(void) {
+    KAFFINITY kAffinityMask;
+    for (size_t i = 0; i < ProcessorCounts; i++)
+    {
+        kAffinityMask = ipow(2, i);
+        KeSetSystemAffinityThread(kAffinityMask);
+        DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
 
-	DbgPrint("\n[*] Terminating VMX...\n");
+        __vmx_off();
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMXON_REGION));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMCS_REGION));
+    }
 
-	KAFFINITY kAffinityMask;
-	for (size_t i = 0; i < ProcessorCounts; i++)
-	{
-		kAffinityMask = ipow(2, i);
-		KeSetSystemAffinityThread(kAffinityMask);
-		DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
-
-
-		__vmx_off();
-		MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMXON_REGION));
-		MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMCS_REGION));
-
-	}
-
-	DbgPrint("[*] VMX Operation turned off successfully. \n");
-
+    DbgPrint("[*] VMX Operation turned off successfully. \n");
 }

@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Driver Files">
-      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
-      <Extensions>inf;inv;inx;mof;mc;</Extensions>
-    </Filter>
     <Filter Include="Source Files\Memory">
       <UniqueIdentifier>{558c8229-1c77-4eb0-807f-f7db9e11455c}</UniqueIdentifier>
     </Filter>
@@ -25,11 +21,6 @@
     <Filter Include="Source Files\Common">
       <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Inf Include="MyHypervisorDriver.inf">
-      <Filter>Driver Files</Filter>
-    </Inf>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Memory.c">

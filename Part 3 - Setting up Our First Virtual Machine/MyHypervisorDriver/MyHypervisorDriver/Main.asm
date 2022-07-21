@@ -1,11 +1,11 @@
-PUBLIC Enable_VMX_Operation
+PUBLIC EnableVmxOperation
 PUBLIC Breakpoint
 
 .code _text
 
 ;------------------------------------------------------------------------
 
-Enable_VMX_Operation PROC PUBLIC
+EnableVmxOperation PROC PUBLIC
 push rax			; Save the state
 
 xor rax,rax			; Clear the RAX
@@ -15,7 +15,7 @@ mov cr4,rax
 
 pop rax				; Restore the state
 ret
-Enable_VMX_Operation ENDP
+EnableVmxOperation ENDP
 
 ;------------------------------------------------------------------------
      

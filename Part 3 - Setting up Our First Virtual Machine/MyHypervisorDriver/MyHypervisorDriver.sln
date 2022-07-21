@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyHypervisorDriver", "MyHypervisorDriver\MyHypervisorDriver.vcxproj", "{BB17323A-2460-4AE1-8AFE-B367400B934F}"
 EndProject
@@ -16,15 +16,11 @@ Global
 		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x64.ActiveCfg = Debug|x64
 		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x64.Build.0 = Debug|x64
 		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x64.Deploy.0 = Debug|x64
-		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x86.ActiveCfg = Debug|Win32
-		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x86.Build.0 = Debug|Win32
-		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x86.Deploy.0 = Debug|Win32
+		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Debug|x86.ActiveCfg = Debug|x64
 		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x64.ActiveCfg = Release|x64
 		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x64.Build.0 = Release|x64
 		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x64.Deploy.0 = Release|x64
-		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x86.ActiveCfg = Release|Win32
-		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x86.Build.0 = Release|Win32
-		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x86.Deploy.0 = Release|Win32
+		{BB17323A-2460-4AE1-8AFE-B367400B934F}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

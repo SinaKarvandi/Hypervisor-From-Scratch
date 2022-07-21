@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Driver Files">
-      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
-      <Extensions>inf;inv;inx;mof;mc;</Extensions>
-    </Filter>
     <Filter Include="Assembly">
       <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
     </Filter>
@@ -25,11 +21,6 @@
     <Filter Include="Source Files\Hypervisor">
       <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Inf Include="MyHypervisorDriver.inf">
-      <Filter>Driver Files</Filter>
-    </Inf>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Driver.c">
