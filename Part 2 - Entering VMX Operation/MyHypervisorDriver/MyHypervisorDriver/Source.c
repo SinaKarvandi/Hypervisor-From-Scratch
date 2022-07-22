@@ -28,7 +28,9 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     if (NtStatus == STATUS_SUCCESS)
     {
         for (Index = 0; Index < IRP_MJ_MAXIMUM_FUNCTION; Index++)
+        {
             DriverObject->MajorFunction[Index] = DrvUnsupported;
+        }
 
         DbgPrint("[*] Setting Devices major functions.");
         DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
