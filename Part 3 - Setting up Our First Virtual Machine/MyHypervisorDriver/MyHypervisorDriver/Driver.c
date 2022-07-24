@@ -108,7 +108,9 @@ DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     DbgPrint("[*] DrvClose Called !");
 
+    //
     // executing VMXOFF on every logical processor
+    //
     TerminateVmx();
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
@@ -574,8 +576,8 @@ VOID
 PrintIrpInfo(
     PIRP Irp)
 {
-    PIO_STACK_LOCATION irpSp;
-    irpSp = IoGetCurrentIrpStackLocation(Irp);
+    PIO_STACK_LOCATION IrpStack;
+    IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
     PAGED_CODE();
 
@@ -583,10 +585,10 @@ PrintIrpInfo(
              Irp->AssociatedIrp.SystemBuffer);
     DbgPrint("\tIrp->UserBuffer = 0x%p\n", Irp->UserBuffer);
     DbgPrint("\tirpSp->Parameters.DeviceIoControl.Type3InputBuffer = 0x%p\n",
-             irpSp->Parameters.DeviceIoControl.Type3InputBuffer);
+             IrpStack->Parameters.DeviceIoControl.Type3InputBuffer);
     DbgPrint("\tirpSp->Parameters.DeviceIoControl.InputBufferLength = %d\n",
-             irpSp->Parameters.DeviceIoControl.InputBufferLength);
+             IrpStack->Parameters.DeviceIoControl.InputBufferLength);
     DbgPrint("\tirpSp->Parameters.DeviceIoControl.OutputBufferLength = %d\n",
-             irpSp->Parameters.DeviceIoControl.OutputBufferLength);
+             IrpStack->Parameters.DeviceIoControl.OutputBufferLength);
     return;
 }
