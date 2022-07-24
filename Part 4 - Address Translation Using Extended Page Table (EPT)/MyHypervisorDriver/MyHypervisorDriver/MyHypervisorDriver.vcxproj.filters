@@ -40,16 +40,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Vmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MSR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Driver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EPT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VMX.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,97 +1,68 @@
 #include "MSR.h"
-#include "VMX.h"
-#include "Common.h"
+#include "Vmx.h"
+#include "Driver.h"
 
-PVirtualMachineState vmState;
-int ProcessorCounts;
+VIRTUAL_MACHINE_STATE * g_GuestState;
+int                     ProcessorCounts;
 
-PVirtualMachineState Initiate_VMX(void) {
-
-	if (!Is_VMX_Supported())
-	{
-		DbgPrint("[*] VMX is not supported in this machine !");
-		return NULL;
-	}
-
-	ProcessorCounts = KeQueryActiveProcessorCount(0);
-	vmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VirtualMachineState)* ProcessorCounts, POOLTAG);
-
-
-	DbgPrint("\n=====================================================\n");
-
-	KAFFINITY kAffinityMask;
-	for (size_t i = 0; i < ProcessorCounts; i++)
-	{
-		kAffinityMask = ipow(2, i);
-		KeSetSystemAffinityThread(kAffinityMask);
-		// do st here !
-		DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
-
-		Enable_VMX_Operation();	// Enabling VMX Operation
-		DbgPrint("[*] VMX Operation Enabled Successfully !");
-
-		Allocate_VMXON_Region(&vmState[i]);
-		Allocate_VMCS_Region(&vmState[i]);
-
-
-		DbgPrint("[*] VMCS Region is allocated at  ===============> %llx", vmState[i].VMCS_REGION);
-		DbgPrint("[*] VMXON Region is allocated at ===============> %llx", vmState[i].VMXON_REGION);
-
-		DbgPrint("\n=====================================================\n");
-
-	}
-
-}
-
-
-void Terminate_VMX(void) {
-
-	DbgPrint("\n[*] Terminating VMX...\n");
-
-	KAFFINITY kAffinityMask;
-	for (size_t i = 0; i < ProcessorCounts; i++)
-	{
-		kAffinityMask = ipow(2, i);
-		KeSetSystemAffinityThread(kAffinityMask);
-		DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
-
-
-		__vmx_off();
-		MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMXON_REGION));
-		MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMCS_REGION));
-
-	}
-
-	DbgPrint("[*] VMX Operation turned off successfully. \n");
-
-}
-
-UINT64 VMPTRST()
+VIRTUAL_MACHINE_STATE *
+InitializeVmx()
 {
-	PHYSICAL_ADDRESS vmcspa;
-	vmcspa.QuadPart = 0;
-	__vmx_vmptrst((unsigned __int64 *)&vmcspa);
+    if (!IsVmxSupported())
+    {
+        DbgPrint("[*] VMX is not supported in this machine !");
+        return NULL;
+    }
 
-	DbgPrint("[*] VMPTRST %llx", vmcspa);
+    ProcessorCounts = KeQueryActiveProcessorCount(0);
+    g_GuestState    = ExAllocatePoolWithTag(NonPagedPool,
+                                         sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCounts,
+                                         POOLTAG);
 
-	return 0;
+    DbgPrint("\n=====================================================\n");
+
+    KAFFINITY AffinityMask;
+    for (size_t i = 0; i < ProcessorCounts; i++)
+    {
+        AffinityMask = MathPower(2, i);
+
+        KeSetSystemAffinityThread(AffinityMask);
+
+        DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
+
+        //
+        // Enabling VMX Operation
+        //
+        AsmEnableVmxOperation();
+
+        DbgPrint("[*] VMX Operation Enabled Successfully !");
+
+        AllocateVmxonRegion(&g_GuestState[i]);
+        AllocateVmcsRegion(&g_GuestState[i]);
+
+        DbgPrint("[*] VMCS Region is allocated at  ===============> %llx", g_GuestState[i].VmcsRegion);
+        DbgPrint("[*] VMXON Region is allocated at ===============> %llx", g_GuestState[i].VmxonRegion);
+
+        DbgPrint("\n=====================================================\n");
+    }
 }
 
-BOOLEAN Clear_VMCS_State(IN PVirtualMachineState vmState) {
+VOID
+TerminateVmx()
+{
+    DbgPrint("\n[*] Terminating VMX...\n");
 
-	// Clear the state of the VMCS to inactive
+    KAFFINITY AffinityMask;
+    for (size_t i = 0; i < ProcessorCounts; i++)
+    {
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
+        DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
 
-	if (__vmx_vmclear(&vmState->VMCS_REGION))
-	{
-		// Otherwise terminate the VMX
-		__vmx_off();
-		return FALSE;
-	}
-	return TRUE;
-}
+        __vmx_off();
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmxonRegion));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmcsRegion));
+    }
 
-BOOLEAN Setup_VMCS(IN PVirtualMachineState vmState) {
-
-
-
+    DbgPrint("[*] VMX Operation turned off successfully. \n");
 }

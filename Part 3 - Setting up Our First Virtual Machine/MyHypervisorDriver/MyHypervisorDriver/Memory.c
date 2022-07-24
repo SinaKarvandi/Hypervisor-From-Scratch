@@ -5,7 +5,7 @@
 #include "Vmx.h"
 
 UINT64
-VirtualToPhysicallAddress(void * Va)
+VirtualToPhysicalAddress(void * Va)
 {
     return MmGetPhysicalAddress(Va).QuadPart;
 }
@@ -42,7 +42,7 @@ AllocateVmxonRegion(IN VIRTUAL_MACHINE_STATE * GuestState)
         DbgPrint("[*] Error : Couldn't Allocate Buffer for VMXON Region.");
         return FALSE; // NtStatus = STATUS_INSUFFICIENT_RESOURCES;
     }
-    UINT64 PhysicalBuffer = VirtualToPhysicallAddress(Buffer);
+    UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
 
     // zero-out memory
     RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
@@ -97,7 +97,7 @@ AllocateVmcsRegion(IN VIRTUAL_MACHINE_STATE * GuestState)
 
     // BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
 
-    UINT64 PhysicalBuffer = VirtualToPhysicallAddress(Buffer);
+    UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
     if (Buffer == NULL)
     {
         DbgPrint("[*] Error : Couldn't Allocate Buffer for VMCS Region.");

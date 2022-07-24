@@ -27,7 +27,7 @@ VOID
 TerminateVmx();
 
 UINT64
-VirtualToPhysicallAddress(void * va);
+VirtualToPhysicalAddress(void * va);
 
 UINT64
 PhysicalToVirtualAddress(UINT64 pa);

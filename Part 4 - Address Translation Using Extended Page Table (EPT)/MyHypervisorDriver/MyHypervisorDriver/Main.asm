@@ -1,11 +1,7 @@
-PUBLIC Enable_VMX_Operation
-PUBLIC Breakpoint
-PUBLIC STI_Instruction
-PUBLIC CLI_Instruction
-PUBLIC INVEPT_Instruction
+PUBLIC AsmEnableVmxOperation
+PUBLIC AsmPerformInvept
 
 .code _text
-
 
 ;------------------------------------------------------------------------
     VMX_ERROR_CODE_SUCCESS              = 0
@@ -13,54 +9,41 @@ PUBLIC INVEPT_Instruction
     VMX_ERROR_CODE_FAILED               = 2
 ;------------------------------------------------------------------------
 
-Enable_VMX_Operation PROC PUBLIC
-push rax			; Save the state
+AsmEnableVmxOperation PROC PUBLIC
 
-xor rax,rax			; Clear the RAX
-mov rax,cr4
-or rax,02000h		; Set the 14th bit
-mov cr4,rax
+	PUSH RAX			    ; Save the state
+	
+	XOR RAX, RAX			; Clear the RAX
+	MOV RAX, CR4
 
-pop rax				; Restore the state
-ret
-Enable_VMX_Operation ENDP
+	OR RAX,02000h	    	; Set the 14th bit
+	MOV CR4, RAX
+	
+	POP RAX			     	; Restore the state
+	RET
 
-;------------------------------------------------------------------------
-     
-Breakpoint PROC PUBLIC
-int 3
-ret
-Breakpoint ENDP 
+AsmEnableVmxOperation ENDP
 
 ;------------------------------------------------------------------------
 
-STI_Instruction PROC PUBLIC
-STI
-ret
-STI_Instruction ENDP 
+AsmPerformInvept PROC PUBLIC
+
+	INVEPT  RCX, OWORD PTR [RDX]
+	JZ FailedWithStatus
+	JC Failed
+	XOR     RAX, RAX
+	RET
+
+FailedWithStatus:    
+	MOV     RAX, VMX_ERROR_CODE_FAILED_WITH_STATUS
+	RET
+
+Failed:   
+	MOV     RAX, VMX_ERROR_CODE_FAILED
+	RET
+
+AsmPerformInvept ENDP
 
 ;------------------------------------------------------------------------
 
-CLI_Instruction PROC PUBLIC
-CLI
-ret
-CLI_Instruction ENDP 
-
-;------------------------------------------------------------------------
-INVEPT_Instruction PROC PUBLIC
-        invept  rcx, oword ptr [rdx]
-        jz @jz
-        jc @jc
-        xor     rax, rax
-        ret
-
-@jz:    mov     rax, VMX_ERROR_CODE_FAILED_WITH_STATUS
-        ret
-
-@jc:    mov     rax, VMX_ERROR_CODE_FAILED
-        ret
-INVEPT_Instruction ENDP
-
-;------------------------------------------------------------------------
-
-END                                                                                                                                                                                                                   
+END

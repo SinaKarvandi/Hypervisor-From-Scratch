@@ -2,70 +2,73 @@
 #include <wdf.h>
 #include <wdm.h>
 #include "MSR.h"
-#include "Common.h"
-#include "VMX.h"
 
-
-int ipow(int base, int exp) {
-	int result = 1;
-	for (;;)
-	{
-		if ( exp & 1)
-		{
-			result *= base;
-		}
-		exp >>= 1;
-		if (!exp)
-		{
-			break;
-		}
-		base *= base;
-	}
-	return result;
-}
-
-
-void Run_On_Each_Logical_Processor(void*(*FunctionPtr)()) {
-
-	KAFFINITY kAffinityMask;
-	for (size_t i = 0; i < KeQueryActiveProcessors(); i++)
-	{
-		kAffinityMask = ipow(2, i);
-		KeSetSystemAffinityThread(kAffinityMask);
-		// do st here !
-		DbgPrint("=====================================================");
-		DbgPrint("Current thread is executing in %d th logical processor.",i);
-		FunctionPtr();
-
-	}
-
-}
-
-
-BOOLEAN Is_VMX_Supported()
+int
+MathPower(int Base, int Exponent)
 {
-	CPUID data = { 0 };
+    int Result = 1;
+    for (;;)
+    {
+        if (Exponent & 1)
+        {
+            Result *= Base;
+        }
 
-	// VMX bit
-	__cpuid((int*)&data, 1);
-	if ((data.ecx & (1 << 5)) == 0)
-		return FALSE;
+        Exponent >>= 1;
+        if (!Exponent)
+        {
+            break;
+        }
+        Base *= Base;
+    }
+    return Result;
+}
 
-	IA32_FEATURE_CONTROL_MSR Control = { 0 };
-	Control.All = __readmsr(MSR_IA32_FEATURE_CONTROL);
+void
+RunOnEachLogicalProcessor(void * (*FunctionPtr)())
+{
+    KAFFINITY AffinityMask;
+    for (size_t i = 0; i < KeQueryActiveProcessors(); i++)
+    {
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
 
-	// BIOS lock check
-	if (Control.Fields.Lock == 0)
-	{
-		Control.Fields.Lock = TRUE;
-		Control.Fields.EnableVmxon = TRUE;
-		__writemsr(MSR_IA32_FEATURE_CONTROL, Control.All);
-	}
-	else if (Control.Fields.EnableVmxon == FALSE)
-	{
-		DbgPrint("[*] VMX locked off in BIOS");
-		return FALSE;
-	}
+        DbgPrint("=====================================================");
+        DbgPrint("Current thread is executing in %d th logical processor.", i);
 
-	return TRUE;
+        FunctionPtr();
+    }
+}
+
+BOOLEAN
+IsVmxSupported()
+{
+    CPUID Data = {0};
+
+    //
+    // Check for the VMX bit
+    //
+    __cpuid((int *)&Data, 1);
+    if ((Data.ecx & (1 << 5)) == 0)
+        return FALSE;
+
+    IA32_FEATURE_CONTROL_MSR Control = {0};
+    Control.All                      = __readmsr(MSR_IA32_FEATURE_CONTROL);
+
+    //
+    // BIOS lock check
+    //
+    if (Control.Fields.Lock == 0)
+    {
+        Control.Fields.Lock        = TRUE;
+        Control.Fields.EnableVmxon = TRUE;
+        __writemsr(MSR_IA32_FEATURE_CONTROL, Control.All);
+    }
+    else if (Control.Fields.EnableVmxon == FALSE)
+    {
+        DbgPrint("[*] VMX locked off in BIOS");
+        return FALSE;
+    }
+
+    return TRUE;
 }
