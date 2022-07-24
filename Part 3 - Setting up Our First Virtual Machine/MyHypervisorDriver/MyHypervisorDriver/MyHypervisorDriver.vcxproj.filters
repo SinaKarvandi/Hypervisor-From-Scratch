@@ -37,13 +37,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h">
+    <ClInclude Include="Vmx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MSR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Driver.h">

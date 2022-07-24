@@ -2,7 +2,7 @@
 #include <wdf.h>
 #include <wdm.h>
 #include "Driver.h"
-#include "Common.h"
+#include "Vmx.h"
 
 NTSTATUS
 DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
@@ -161,27 +161,27 @@ PrintChars(
 NTSTATUS
 DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION irpSp;                     // Pointer to current stack location
-    NTSTATUS           ntStatus = STATUS_SUCCESS; // Assume success
-    ULONG              inBufLength;               // Input buffer length
-    ULONG              outBufLength;              // Output buffer length
-    PCHAR              inBuf, outBuf;             // pointer to Input and output buffer
-    PCHAR              data    = "This String is from Device Driver !!!";
-    size_t             datalen = strlen(data) + 1; // Length of data including null
-    PMDL               mdl     = NULL;
-    PCHAR              buffer  = NULL;
+    PIO_STACK_LOCATION IrpStack;                  // Pointer to current stack location
+    NTSTATUS           NtStatus = STATUS_SUCCESS; // Assume success
+    ULONG              InBufLength;               // Input buffer length
+    ULONG              OutBufLength;              // Output buffer length
+    PCHAR              InBuf, OutBuf;             // pointer to Input and output buffer
+    PCHAR              Data    = "This String is from Device Driver !!!";
+    size_t             DataLen = strlen(Data) + 1; // Length of data including null
+    PMDL               Mdl     = NULL;
+    PCHAR              Buffer  = NULL;
 
     UNREFERENCED_PARAMETER(DeviceObject);
 
     PAGED_CODE();
 
-    irpSp        = IoGetCurrentIrpStackLocation(Irp);
-    inBufLength  = irpSp->Parameters.DeviceIoControl.InputBufferLength;
-    outBufLength = irpSp->Parameters.DeviceIoControl.OutputBufferLength;
+    IrpStack     = IoGetCurrentIrpStackLocation(Irp);
+    InBufLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+    OutBufLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
 
-    if (!inBufLength || !outBufLength)
+    if (!InBufLength || !OutBufLength)
     {
-        ntStatus = STATUS_INVALID_PARAMETER;
+        NtStatus = STATUS_INVALID_PARAMETER;
         goto End;
     }
 
@@ -189,7 +189,7 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // Determine which I/O control code was specified.
     //
 
-    switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
+    switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
     {
     case IOCTL_SIOCTL_METHOD_BUFFERED:
 
@@ -208,8 +208,8 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // content of the buffer before writing to it
         //
 
-        inBuf  = Irp->AssociatedIrp.SystemBuffer;
-        outBuf = Irp->AssociatedIrp.SystemBuffer;
+        InBuf  = Irp->AssociatedIrp.SystemBuffer;
+        OutBuf = Irp->AssociatedIrp.SystemBuffer;
 
         //
         // Read the data from the buffer
@@ -221,24 +221,24 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // DebugPrint with %s format because we string we get may or
         // may not be null terminated.
         //
-        DbgPrint(inBuf);
-        PrintChars(inBuf, inBufLength);
+        DbgPrint(InBuf);
+        PrintChars(InBuf, InBufLength);
 
         //
         // Write to the buffer over-writes the input buffer content
         //
 
-        RtlCopyBytes(outBuf, data, outBufLength);
+        RtlCopyBytes(OutBuf, Data, OutBufLength);
 
         DbgPrint(("\tData to User : "));
-        PrintChars(outBuf, datalen);
+        PrintChars(OutBuf, DataLen);
 
         //
         // Assign the length of the data copied to IoStatus.Information
         // of the Irp and complete the Irp.
         //
 
-        Irp->IoStatus.Information = (outBufLength < datalen ? outBufLength : datalen);
+        Irp->IoStatus.Information = (OutBufLength < DataLen ? OutBufLength : DataLen);
 
         //
         // When the Irp is completed the content of the SystemBuffer
@@ -274,8 +274,8 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // is accessing memory.
         //
 
-        inBuf  = irpSp->Parameters.DeviceIoControl.Type3InputBuffer;
-        outBuf = Irp->UserBuffer;
+        InBuf  = IrpStack->Parameters.DeviceIoControl.Type3InputBuffer;
+        OutBuf = Irp->UserBuffer;
 
         //
         // Access the buffers directly if only if you are running in the
@@ -290,7 +290,7 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // to make sure the buffer is indeed an userbuffer with proper access
             // rights and length. ProbeForRead/Write will raise an exception if it's otherwise.
             //
-            ProbeForRead(inBuf, inBufLength, sizeof(UCHAR));
+            ProbeForRead(InBuf, InBufLength, sizeof(UCHAR));
 
             //
             // Since the buffer access rights can be changed or buffer can be freed
@@ -299,15 +299,15 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
 
             DbgPrint("\tData from User :");
-            DbgPrint(inBuf);
-            PrintChars(inBuf, inBufLength);
+            DbgPrint(InBuf);
+            PrintChars(InBuf, InBufLength);
         }
         except(EXCEPTION_EXECUTE_HANDLER)
         {
-            ntStatus = GetExceptionCode();
+            NtStatus = GetExceptionCode();
             DbgPrint(
-                "Exception while accessing inBuf 0X%08X in METHOD_NEITHER\n",
-                ntStatus);
+                "Exception while accessing InBuf 0X%08X in METHOD_NEITHER\n",
+                NtStatus);
             break;
         }
 
@@ -320,10 +320,10 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // that an MDL can describe is 65508 KB.
         //
 
-        mdl = IoAllocateMdl(inBuf, inBufLength, FALSE, TRUE, NULL);
-        if (!mdl)
+        Mdl = IoAllocateMdl(InBuf, InBufLength, FALSE, TRUE, NULL);
+        if (!Mdl)
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
@@ -335,15 +335,15 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Always perform this operation in a try except block.
             //  MmProbeAndLockPages will raise an exception if it fails.
             //
-            MmProbeAndLockPages(mdl, UserMode, IoReadAccess);
+            MmProbeAndLockPages(Mdl, UserMode, IoReadAccess);
         }
         except(EXCEPTION_EXECUTE_HANDLER)
         {
-            ntStatus = GetExceptionCode();
+            NtStatus = GetExceptionCode();
             DbgPrint((
-                "Exception while locking inBuf 0X%08X in METHOD_NEITHER\n",
-                ntStatus));
-            IoFreeMdl(mdl);
+                "Exception while locking InBuf 0X%08X in METHOD_NEITHER\n",
+                NtStatus));
+            IoFreeMdl(Mdl);
             break;
         }
 
@@ -353,13 +353,13 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // system overhead for large size buffers.
         //
 
-        buffer = MmGetSystemAddressForMdlSafe(mdl, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Mdl, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            MmUnlockPages(mdl);
-            IoFreeMdl(mdl);
+            NtStatus = STATUS_INSUFFICIENT_RESOURCES;
+            MmUnlockPages(Mdl);
+            IoFreeMdl(Mdl);
             break;
         }
 
@@ -367,24 +367,24 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // Now you can safely read the data from the buffer.
         //
         DbgPrint("\tData from User (SystemAddress) : ");
-        DbgPrint(buffer);
-        PrintChars(buffer, inBufLength);
+        DbgPrint(Buffer);
+        PrintChars(Buffer, InBufLength);
 
         //
         // Once the read is over unmap and unlock the pages.
         //
 
-        MmUnlockPages(mdl);
-        IoFreeMdl(mdl);
+        MmUnlockPages(Mdl);
+        IoFreeMdl(Mdl);
 
         //
         // The same steps can be followed to access the output buffer.
         //
 
-        mdl = IoAllocateMdl(outBuf, outBufLength, FALSE, TRUE, NULL);
-        if (!mdl)
+        Mdl = IoAllocateMdl(OutBuf, OutBufLength, FALSE, TRUE, NULL);
+        if (!Mdl)
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
@@ -395,50 +395,50 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // You can specify IoReadAccess, IoWriteAccess or IoModifyAccess.
             //
 
-            MmProbeAndLockPages(mdl, UserMode, IoWriteAccess);
+            MmProbeAndLockPages(Mdl, UserMode, IoWriteAccess);
         }
         except(EXCEPTION_EXECUTE_HANDLER)
         {
-            ntStatus = GetExceptionCode();
+            NtStatus = GetExceptionCode();
             DbgPrint(
-                "Exception while locking outBuf 0X%08X in METHOD_NEITHER\n",
-                ntStatus);
-            IoFreeMdl(mdl);
+                "Exception while locking OutBuf 0X%08X in METHOD_NEITHER\n",
+                NtStatus);
+            IoFreeMdl(Mdl);
             break;
         }
 
-        buffer = MmGetSystemAddressForMdlSafe(mdl, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Mdl, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
-            MmUnlockPages(mdl);
-            IoFreeMdl(mdl);
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            MmUnlockPages(Mdl);
+            IoFreeMdl(Mdl);
+            NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
         //
         // Write to the buffer
         //
 
-        RtlCopyBytes(buffer, data, outBufLength);
+        RtlCopyBytes(Buffer, Data, OutBufLength);
 
-        DbgPrint("\tData to User : %s\n", buffer);
-        PrintChars(buffer, datalen);
+        DbgPrint("\tData to User : %s\n", Buffer);
+        PrintChars(Buffer, DataLen);
 
-        MmUnlockPages(mdl);
+        MmUnlockPages(Mdl);
 
         //
         // Free the allocated MDL
         //
 
-        IoFreeMdl(mdl);
+        IoFreeMdl(Mdl);
 
         //
         // Assign the length of the data copied to IoStatus.Information
         // of the Irp and complete the Irp.
         //
 
-        Irp->IoStatus.Information = (outBufLength < datalen ? outBufLength : datalen);
+        Irp->IoStatus.Information = (OutBufLength < DataLen ? OutBufLength : DataLen);
 
         break;
 
@@ -458,11 +458,11 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         PrintIrpInfo(Irp);
 
-        inBuf = Irp->AssociatedIrp.SystemBuffer;
+        InBuf = Irp->AssociatedIrp.SystemBuffer;
 
         DbgPrint("\tData from User in InputBuffer: ");
-        DbgPrint(inBuf);
-        PrintChars(inBuf, inBufLength);
+        DbgPrint(InBuf);
+        PrintChars(InBuf, InBufLength);
 
         //
         // To access the output buffer, just get the system address
@@ -470,17 +470,17 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // from the application to the driver.
         //
 
-        buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
         DbgPrint("\tData from User in OutputBuffer: ");
-        DbgPrint(buffer);
-        PrintChars(buffer, outBufLength);
+        DbgPrint(Buffer);
+        PrintChars(Buffer, OutBufLength);
 
         //
         // Return total bytes read from the output buffer.
@@ -512,11 +512,11 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         PrintIrpInfo(Irp);
 
-        inBuf = Irp->AssociatedIrp.SystemBuffer;
+        InBuf = Irp->AssociatedIrp.SystemBuffer;
 
         DbgPrint("\tData from User : ");
-        DbgPrint(inBuf);
-        PrintChars(inBuf, inBufLength);
+        DbgPrint(InBuf);
+        PrintChars(InBuf, InBufLength);
 
         //
         // To access the output buffer, just get the system address
@@ -524,23 +524,23 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // from the driver to the application.
         //
 
-        buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
-            ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+            NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
         //
         // Write data to be sent to the user in this buffer
         //
-        RtlCopyBytes(buffer, data, outBufLength);
+        RtlCopyBytes(Buffer, Data, OutBufLength);
 
         DbgPrint("\tData to User : ");
-        PrintChars(buffer, datalen);
+        PrintChars(Buffer, DataLen);
 
-        Irp->IoStatus.Information = (outBufLength < datalen ? outBufLength : datalen);
+        Irp->IoStatus.Information = (OutBufLength < DataLen ? OutBufLength : DataLen);
 
         //
         // NOTE: Changes made to the  SystemBuffer are not copied
@@ -553,9 +553,9 @@ DrvIoctlDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // The specified I/O control code is unrecognized by this driver.
         //
-        ntStatus = STATUS_INVALID_DEVICE_REQUEST;
+        NtStatus = STATUS_INVALID_DEVICE_REQUEST;
         DbgPrint("ERROR: unrecognized IOCTL %x\n",
-                 irpSp->Parameters.DeviceIoControl.IoControlCode);
+                 IrpStack->Parameters.DeviceIoControl.IoControlCode);
         break;
     }
 
@@ -565,11 +565,11 @@ End:
     // the same status as in the packet itself.
     //
 
-    Irp->IoStatus.Status = ntStatus;
+    Irp->IoStatus.Status = NtStatus;
 
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-    return ntStatus;
+    return NtStatus;
 }
 
 VOID
@@ -584,11 +584,11 @@ PrintIrpInfo(
     DbgPrint("\tIrp->AssociatedIrp.SystemBuffer = 0x%p\n",
              Irp->AssociatedIrp.SystemBuffer);
     DbgPrint("\tIrp->UserBuffer = 0x%p\n", Irp->UserBuffer);
-    DbgPrint("\tirpSp->Parameters.DeviceIoControl.Type3InputBuffer = 0x%p\n",
+    DbgPrint("\tIrpStack->Parameters.DeviceIoControl.Type3InputBuffer = 0x%p\n",
              IrpStack->Parameters.DeviceIoControl.Type3InputBuffer);
-    DbgPrint("\tirpSp->Parameters.DeviceIoControl.InputBufferLength = %d\n",
+    DbgPrint("\tIrpStack->Parameters.DeviceIoControl.InputBufferLength = %d\n",
              IrpStack->Parameters.DeviceIoControl.InputBufferLength);
-    DbgPrint("\tirpSp->Parameters.DeviceIoControl.OutputBufferLength = %d\n",
+    DbgPrint("\tIrpStack->Parameters.DeviceIoControl.OutputBufferLength = %d\n",
              IrpStack->Parameters.DeviceIoControl.OutputBufferLength);
     return;
 }

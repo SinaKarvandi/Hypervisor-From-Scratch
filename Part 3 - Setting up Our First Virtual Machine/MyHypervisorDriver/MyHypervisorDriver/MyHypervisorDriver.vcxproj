@@ -86,8 +86,7 @@
     <MASM Include="Main.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h" />
-    <ClInclude Include="CPU.h" />
+    <ClInclude Include="Vmx.h" />
     <ClInclude Include="MSR.h" />
     <ClInclude Include="Driver.h" />
   </ItemGroup>

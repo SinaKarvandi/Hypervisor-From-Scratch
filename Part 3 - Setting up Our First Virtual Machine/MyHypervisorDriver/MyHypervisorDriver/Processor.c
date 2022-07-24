@@ -2,37 +2,36 @@
 #include <wdf.h>
 #include <wdm.h>
 #include "MSR.h"
-#include "CPU.h"
-#include "Common.h"
 
 int
-ipow(int base, int exp)
+MathPower(int Base, int Exponent)
 {
-    int result = 1;
+    int Result = 1;
     for (;;)
     {
-        if (exp & 1)
+        if (Exponent & 1)
         {
-            result *= base;
+            Result *= Base;
         }
-        exp >>= 1;
-        if (!exp)
+
+        Exponent >>= 1;
+        if (!Exponent)
         {
             break;
         }
-        base *= base;
+        Base *= Base;
     }
-    return result;
+    return Result;
 }
 
 void
 RunOnEachLogicalProcessor(void * (*FunctionPtr)())
 {
-    KAFFINITY kAffinityMask;
+    KAFFINITY AffinityMask;
     for (size_t i = 0; i < KeQueryActiveProcessors(); i++)
     {
-        kAffinityMask = ipow(2, i);
-        KeSetSystemAffinityThread(kAffinityMask);
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
 
         DbgPrint("=====================================================");
         DbgPrint("Current thread is executing in %d th logical processor.", i);
@@ -44,13 +43,13 @@ RunOnEachLogicalProcessor(void * (*FunctionPtr)())
 BOOLEAN
 IsVmxSupported()
 {
-    CPUID data = {0};
+    CPUID Data = {0};
 
     //
     // Check for the VMX bit
     //
-    __cpuid((int *)&data, 1);
-    if ((data.ecx & (1 << 5)) == 0)
+    __cpuid((int *)&Data, 1);
+    if ((Data.ecx & (1 << 5)) == 0)
         return FALSE;
 
     IA32_FEATURE_CONTROL_MSR Control = {0};

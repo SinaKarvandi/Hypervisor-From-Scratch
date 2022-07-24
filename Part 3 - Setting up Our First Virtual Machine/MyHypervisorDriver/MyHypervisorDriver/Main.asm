@@ -1,29 +1,24 @@
-PUBLIC EnableVmxOperation
-PUBLIC Breakpoint
+PUBLIC AsmEnableVmxOperation
 
 .code _text
 
 ;------------------------------------------------------------------------
 
-EnableVmxOperation PROC PUBLIC
-push rax			; Save the state
+AsmEnableVmxOperation PROC PUBLIC
 
-xor rax,rax			; Clear the RAX
-mov rax,cr4
-or rax,02000h		; Set the 14th bit
-mov cr4,rax
+	PUSH RAX			    ; Save the state
+	
+	XOR RAX, RAX			; Clear the RAX
+	MOV RAX, CR4
 
-pop rax				; Restore the state
-ret
-EnableVmxOperation ENDP
+	OR RAX,02000h	    	; Set the 14th bit
+	MOV CR4, RAX
+	
+	POP RAX			     	; Restore the state
+	RET
 
-;------------------------------------------------------------------------
-     
-Breakpoint PROC PUBLIC
-int 3
-ret
-Breakpoint ENDP 
+AsmEnableVmxOperation ENDP
 
 ;------------------------------------------------------------------------
 
-END                                                                                                                                                                                                                   
+END

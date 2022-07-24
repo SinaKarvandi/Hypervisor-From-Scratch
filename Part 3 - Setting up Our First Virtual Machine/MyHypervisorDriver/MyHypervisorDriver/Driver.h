@@ -3,11 +3,10 @@
 #include <wdf.h>
 #include <wdm.h>
 
-extern void inline Breakpoint(void);
-extern void inline EnableVmxOperation(void);
+extern void inline AsmEnableVmxOperation(void);
 
 NTSTATUS
-DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath);
+DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject);
 NTSTATUS
