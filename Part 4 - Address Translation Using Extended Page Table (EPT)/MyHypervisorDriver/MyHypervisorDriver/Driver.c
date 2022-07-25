@@ -49,7 +49,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     //
     // Initialize EPT
     //
-    Initialize_EPTP();
+    InitializeEptp();
 
     return NtStatus;
 }

@@ -1,6 +1,8 @@
 #pragma once
 
+//
 // See Table 24-8. Format of Extended-Page-Table Pointer
+//
 typedef union _EPTP
 {
     ULONG64 All;
@@ -15,7 +17,9 @@ typedef union _EPTP
     } Fields;
 } EPTP, *PEPTP;
 
+//
 // See Table 28-1.
+//
 typedef union _EPT_PML4E
 {
     ULONG64 All;
@@ -35,7 +39,9 @@ typedef union _EPT_PML4E
     } Fields;
 } EPT_PML4E, *PEPT_PML4E;
 
+//
 // See Table 28-3
+//
 typedef union _EPT_PDPTE
 {
     ULONG64 All;
@@ -55,7 +61,9 @@ typedef union _EPT_PDPTE
     } Fields;
 } EPT_PDPTE, *PEPT_PDPTE;
 
+//
 // See Table 28-5
+//
 typedef union _EPT_PDE
 {
     ULONG64 All;
@@ -75,7 +83,9 @@ typedef union _EPT_PDE
     } Fields;
 } EPT_PDE, *PEPT_PDE;
 
+//
 // See Table 28-6
+//
 typedef union _EPT_PTE
 {
     ULONG64 All;
@@ -98,24 +108,31 @@ typedef union _EPT_PTE
     } Fields;
 } EPT_PTE, *PEPT_PTE;
 
-enum invept_t
+enum INVEPT_TYPE
 {
-    single_context = 0x00000001,
-    all_contexts   = 0x00000002,
+    SINGLE_CONTEXT = 0x00000001,
+    ALL_CONTEXTS   = 0x00000002,
 };
 
 typedef struct INVEPT_DESC
 {
-    EPTP   ept_pointer;
-    UINT64 reserved;
+    EPTP   Eptp;
+    UINT64 Reserved;
 } INVEPT_DESC, *PINVEPT_DESC;
 
+//
+// EPT Functions
+//
 UINT64
-Initialize_EPTP();
+InitializeEptp();
 
 unsigned char
-INVEPT_ALL_CONTEXTS(void);
-unsigned char
-INVEPT_SINGLE_CONTEXT(EPTP ept_pointer);
+InveptAllContexts(void);
 
+unsigned char
+InveptSingleContext(EPTP ept_pointer);
+
+//
+// Assembly functions
+//
 extern unsigned char inline AsmPerformInvept(_In_ unsigned long Type, _In_ void * Descriptor);
