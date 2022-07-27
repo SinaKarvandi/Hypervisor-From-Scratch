@@ -20,7 +20,7 @@ extern int                     g_ProcessorCounts;
 BOOLEAN
 IsVmxSupported();
 
-VIRTUAL_MACHINE_STATE *
+BOOLEAN
 InitializeVmx();
 
 VOID
