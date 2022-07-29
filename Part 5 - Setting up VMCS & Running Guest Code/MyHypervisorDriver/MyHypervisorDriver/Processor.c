@@ -6,23 +6,23 @@
 #include "VMX.h"
 
 int
-MathPower(int base, int exp)
+MathPower(int Base, int Exp)
 {
-    int result = 1;
+    int Result = 1;
     for (;;)
     {
-        if (exp & 1)
+        if (Exp & 1)
         {
-            result *= base;
+            Result *= Base;
         }
-        exp >>= 1;
-        if (!exp)
+        Exp >>= 1;
+        if (!Exp)
         {
             break;
         }
-        base *= base;
+        Base *= Base;
     }
-    return result;
+    return Result;
 }
 
 void

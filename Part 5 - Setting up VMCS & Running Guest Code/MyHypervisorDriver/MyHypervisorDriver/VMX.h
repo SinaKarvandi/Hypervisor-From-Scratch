@@ -2,15 +2,30 @@
 #include <ntddk.h>
 #include "EPT.h"
 
-typedef struct _VirtualMachineState
+//
+// Structures
+//
+typedef struct _VIRTUAL_MACHINE_STATE
 {
-    UINT64 VMXON_REGION;      // VMXON region
-    UINT64 VMCS_REGION;       // VMCS region
-    UINT64 EPTP;              // Extended-Page-Table Pointer
-    UINT64 VMM_Stack;         // Stack for VMM in VM-Exit State
-    UINT64 MSRBitMap;         // MSRBitMap Virtual Address
-    UINT64 MSRBitMapPhysical; // MSRBitMap Physical Address
-} VirtualMachineState, *PVirtualMachineState;
+    UINT64 VmxoRegion;        // VMXON region
+    UINT64 VmcsRegion;        // VMCS region
+    UINT64 Eptp;              // Extended-Page-Table Pointer
+    UINT64 VmmStack;          // Stack for VMM in VM-Exit State
+    UINT64 MsrBitmap;         // MSR Bitmap Virtual Address
+    UINT64 MsrBitmapPhysical; // MSR Bitmap Physical Address
+
+} VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
+
+//
+// Globals
+//
+ULONG ExitReason;
+
+extern VIRTUAL_MACHINE_STATE * g_GuestState;
+
+extern UINT64 g_VirtualGuestMemoryAddress;
+
+extern int ProcessorCounts;
 
 //
 // VMX Memory
@@ -264,23 +279,18 @@ enum VMCS_FIELDS
 #define EXIT_REASON_XRSTORS                      64
 #define EXIT_REASON_PCOMMIT                      65
 
-extern PVirtualMachineState vmState;
-
-extern UINT64 g_VirtualGuestMemoryAddress;
-
-extern int ProcessorCounts;
-
 #define POOLTAG        0x48564653 // [H]yper[V]isor [F]rom [S]cratch (HVFS)
 #define VMM_STACK_SIZE 0x8000
 #define RPL_MASK       3
 
-ULONG ExitReason;
+//
+// Functions
+//
+VOID
+InitiateVmx();
 
-void
-Initiate_VMX(void);
-
-void
-Terminate_VMX(void);
+VOID
+TerminateVmx();
 
 UINT64
 VirtualToPhysicalAddress(void * va);
@@ -289,29 +299,22 @@ UINT64
 PhysicalToVirtualAddress(UINT64 pa);
 
 BOOLEAN
-Allocate_VMXON_Region(IN PVirtualMachineState vmState);
+AllocateVmxonRegion(VIRTUAL_MACHINE_STATE * GuestState);
 
 BOOLEAN
-Allocate_VMCS_Region(IN PVirtualMachineState vmState);
+AllocateVmcsRegion(VIRTUAL_MACHINE_STATE * GuestState);
 
 UINT64
 VMPTRST();
 
-void
-Run_On_Each_Logical_Processor(void * (*FunctionPtr)());
-
 int
-MathPower(int base, int exp);
-
-void
-Inline_Memory_Patcher();
+MathPower(int Base, int Exp);
 
 extern ULONG64 inline GetGdtBase();
 extern ULONG64 inline GetIdtBase();
 extern void inline AsmEnableVmxOperation();
 extern void inline AsmVmxoffAndRestoreState();
 extern void inline AsmSaveStateForVmxoff();
-extern unsigned char inline INVEPT_Instruction(_In_ unsigned long type, _In_ void * descriptor);
 
 BOOLEAN
 IsVmxSupported();
@@ -319,12 +322,17 @@ IsVmxSupported();
 extern void
 AsmVmexitHandler();
 
-void
-LaunchVM(int ProcessorID, PEPTP EPTP);
+VOID
+LaunchVm(int ProcessorID, PEPTP EPTP);
+
 BOOLEAN
-Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP);
+SetupVmcs(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP);
+
 BOOLEAN
-Load_VMCS(IN PVirtualMachineState vmState);
+LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState);
+
 BOOLEAN
-Clear_VMCS_State(IN PVirtualMachineState vmState);
-VOID VmResumeInstruction(VOID);
+ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState);
+
+VOID
+VmResumeInstruction();

@@ -1,6 +1,9 @@
 #pragma once
 #include <ntddk.h>
 
+//
+// Constants
+//
 #define MSR_APIC_BASE            0x01B
 #define MSR_IA32_FEATURE_CONTROL 0x03A
 
@@ -34,6 +37,9 @@
 #define MSR_GS_BASE        0xC0000101
 #define MSR_SHADOW_GS_BASE 0xC0000102
 
+//
+// Structures
+//
 typedef union _IA32_FEATURE_CONTROL_MSR
 {
     ULONG64 All;

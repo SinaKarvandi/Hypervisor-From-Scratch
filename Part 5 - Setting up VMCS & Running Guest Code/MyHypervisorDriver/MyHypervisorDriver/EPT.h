@@ -134,18 +134,20 @@ typedef union _EPT_PTE
     } Fields;
 } EPT_PTE, *PEPT_PTE;
 
-enum INVEPT_TYPE
-{
-    SINGLE_CONTEXT = 0x00000001,
-    ALL_CONTEXTS   = 0x00000002,
-};
-
 typedef struct INVEPT_DESC
 {
     EPTP   Eptp;
     UINT64 Reserved;
 } INVEPT_DESC, *PINVEPT_DESC;
 
+//
+// Enums
+//
+enum INVEPT_TYPE
+{
+    SINGLE_CONTEXT = 0x00000001,
+    ALL_CONTEXTS   = 0x00000002,
+};
 //
 // EPT Functions
 //

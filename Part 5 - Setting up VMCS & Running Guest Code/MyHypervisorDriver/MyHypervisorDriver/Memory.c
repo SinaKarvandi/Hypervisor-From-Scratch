@@ -21,9 +21,11 @@ PhysicalToVirtualAddress(UINT64 Pa)
 }
 
 BOOLEAN
-Allocate_VMXON_Region(IN PVirtualMachineState vmState)
+AllocateVmxonRegion(VIRTUAL_MACHINE_STATE * GuestState)
 {
+    //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
+    //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
 
@@ -36,8 +38,6 @@ Allocate_VMXON_Region(IN PVirtualMachineState vmState)
     PHYSICAL_ADDRESS Highest = {0}, Lowest = {0};
     Highest.QuadPart = ~0;
 
-    // BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
-
     if (Buffer == NULL)
     {
         DbgPrint("[*] Error : Couldn't Allocate Buffer for VMXON Region.");
@@ -45,43 +45,50 @@ Allocate_VMXON_Region(IN PVirtualMachineState vmState)
     }
     UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
 
+    //
     // zero-out memory
+    //
     RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
-    UINT64 alignedPhysicalBuffer = (BYTE *)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    UINT64 AlignedPhysicalBuffer = (BYTE *)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
 
-    UINT64 alignedVirtualBuffer = (BYTE *)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    UINT64 AlignedVirtualBuffer = (BYTE *)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
 
     DbgPrint("[*] Virtual allocated buffer for VMXON at %llx", Buffer);
-    DbgPrint("[*] Virtual aligned allocated buffer for VMXON at %llx", alignedVirtualBuffer);
-    DbgPrint("[*] Aligned physical buffer allocated for VMXON at %llx", alignedPhysicalBuffer);
+    DbgPrint("[*] Virtual aligned allocated buffer for VMXON at %llx", AlignedVirtualBuffer);
+    DbgPrint("[*] Aligned physical buffer allocated for VMXON at %llx", AlignedPhysicalBuffer);
 
+    //
     // get IA32_VMX_BASIC_MSR RevisionId
-
+    //
     IA32_VMX_BASIC_MSR basic = {0};
 
     basic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
     DbgPrint("[*] MSR_IA32_VMX_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
 
+    //
     // Changing Revision Identifier
-    *(UINT64 *)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
+    //
+    *(UINT64 *)AlignedVirtualBuffer = basic.Fields.RevisionIdentifier;
 
-    int status = __vmx_on(&alignedPhysicalBuffer);
+    int status = __vmx_on(&AlignedPhysicalBuffer);
     if (status)
     {
         DbgPrint("[*] VMXON failed with status %d\n", status);
         return FALSE;
     }
 
-    vmState->VMXON_REGION = alignedPhysicalBuffer;
+    GuestState->VmxoRegion = AlignedPhysicalBuffer;
 
     return TRUE;
 }
 
 BOOLEAN
-Allocate_VMCS_Region(IN PVirtualMachineState vmState)
+AllocateVmcsRegion(VIRTUAL_MACHINE_STATE * GuestState)
 {
+    //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
+    //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
 
@@ -94,36 +101,40 @@ Allocate_VMCS_Region(IN PVirtualMachineState vmState)
     PHYSICAL_ADDRESS Highest = {0}, Lowest = {0};
     Highest.QuadPart = ~0;
 
-    // BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
-
     UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
     if (Buffer == NULL)
     {
         DbgPrint("[*] Error : Couldn't Allocate Buffer for VMCS Region.");
         return FALSE; // ntStatus = STATUS_INSUFFICIENT_RESOURCES;
     }
-    // zero-out memory
-    RtlSecureZeroMemory(Buffer, VMCSSize + ALIGNMENT_PAGE_SIZE);
-    UINT64 alignedPhysicalBuffer = (BYTE *)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
 
-    UINT64 alignedVirtualBuffer = (BYTE *)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+    //
+    // zero-out memory
+    //
+    RtlSecureZeroMemory(Buffer, VMCSSize + ALIGNMENT_PAGE_SIZE);
+    UINT64 AlignedPhysicalBuffer = (BYTE *)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
+
+    UINT64 AlignedVirtualBuffer = (BYTE *)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
 
     DbgPrint("[*] Virtual allocated buffer for VMCS at %llx", Buffer);
-    DbgPrint("[*] Virtual aligned allocated buffer for VMCS at %llx", alignedVirtualBuffer);
-    DbgPrint("[*] Aligned physical buffer allocated for VMCS at %llx", alignedPhysicalBuffer);
+    DbgPrint("[*] Virtual aligned allocated buffer for VMCS at %llx", AlignedVirtualBuffer);
+    DbgPrint("[*] Aligned physical buffer allocated for VMCS at %llx", AlignedPhysicalBuffer);
 
+    //
     // get IA32_VMX_BASIC_MSR RevisionId
-
+    //
     IA32_VMX_BASIC_MSR basic = {0};
 
     basic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
     DbgPrint("[*] MSR_IA32_VMX_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
 
+    //
     // Changing Revision Identifier
-    *(UINT64 *)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
+    //
+    *(UINT64 *)AlignedVirtualBuffer = basic.Fields.RevisionIdentifier;
 
-    vmState->VMCS_REGION = alignedPhysicalBuffer;
+    GuestState->VmcsRegion = AlignedPhysicalBuffer;
 
     return TRUE;
 }

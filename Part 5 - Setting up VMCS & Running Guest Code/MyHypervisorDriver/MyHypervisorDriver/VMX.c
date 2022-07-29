@@ -3,11 +3,11 @@
 #include "Common.h"
 #include "EPT.h"
 
-PVirtualMachineState vmState;
-int                  ProcessorCounts;
+VIRTUAL_MACHINE_STATE * g_GuestState;
+int                     g_ProcessorCounts;
 
-void
-Initiate_VMX(void)
+VOID
+InitiateVmx()
 {
     if (!IsVmxSupported())
     {
@@ -17,40 +17,41 @@ Initiate_VMX(void)
 
     PAGED_CODE();
 
-    ProcessorCounts = KeQueryActiveProcessorCount(0);
-    vmState         = ExAllocatePoolWithTag(NonPagedPool, sizeof(VirtualMachineState) * ProcessorCounts, POOLTAG);
+    g_ProcessorCounts = KeQueryActiveProcessorCount(0);
+    g_GuestState      = ExAllocatePoolWithTag(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * g_ProcessorCounts, POOLTAG);
 
     DbgPrint("\n=====================================================\n");
 
-    KAFFINITY kAffinityMask;
-    for (size_t i = 0; i < ProcessorCounts; i++)
+    KAFFINITY AffinityMask;
+    for (size_t i = 0; i < g_ProcessorCounts; i++)
     {
-        kAffinityMask = MathPower(2, i);
-        KeSetSystemAffinityThread(kAffinityMask);
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
         // do st here !
         DbgPrint("\t\tCurrent thread is executing in %d th logical processor.\n", i);
 
         AsmEnableVmxOperation(); // Enabling VMX Operation
+
         DbgPrint("[*] VMX Operation Enabled Successfully !\n");
 
-        Allocate_VMXON_Region(&vmState[i]);
-        Allocate_VMCS_Region(&vmState[i]);
+        AllocateVmxonRegion(&g_GuestState[i]);
+        AllocateVmcsRegion(&g_GuestState[i]);
 
-        DbgPrint("[*] VMCS Region is allocated at  ===============> %llx\n", vmState[i].VMCS_REGION);
-        DbgPrint("[*] VMXON Region is allocated at ===============> %llx\n", vmState[i].VMXON_REGION);
+        DbgPrint("[*] VMCS Region is allocated at  ===============> %llx\n", g_GuestState[i].VmcsRegion);
+        DbgPrint("[*] VMXON Region is allocated at ===============> %llx\n", g_GuestState[i].VmxoRegion);
 
         DbgPrint("\n=====================================================\n");
     }
 }
 
-void
-LaunchVM(int ProcessorID, PEPTP EPTP)
+VOID
+LaunchVm(int ProcessorID, PEPTP EPTP)
 {
     DbgPrint("\n======================== Launching VM =============================\n");
 
-    KAFFINITY kAffinityMask;
-    kAffinityMask = MathPower(2, ProcessorID);
-    KeSetSystemAffinityThread(kAffinityMask);
+    KAFFINITY AffinityMask;
+    AffinityMask = MathPower(2, ProcessorID);
+    KeSetSystemAffinityThread(AffinityMask);
 
     DbgPrint("[*]\t\tCurrent thread is executing in %d th logical processor.\n", ProcessorID);
 
@@ -60,40 +61,46 @@ LaunchVM(int ProcessorID, PEPTP EPTP)
     //	CLI_Instruction();
 
     // Allocate stack for the VM Exit Handler.
-    UINT64 VMM_STACK_VA            = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
-    vmState[ProcessorID].VMM_Stack = VMM_STACK_VA;
+    UINT64 VMM_STACK_VA                = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    g_GuestState[ProcessorID].VmmStack = VMM_STACK_VA;
 
-    if (vmState[ProcessorID].VMM_Stack == NULL)
+    if (g_GuestState[ProcessorID].VmmStack == NULL)
     {
         DbgPrint("[*] Error in allocating VMM Stack.\n");
         return;
     }
-    RtlZeroMemory(vmState[ProcessorID].VMM_Stack, VMM_STACK_SIZE);
+    RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 
+    //
     // Allocate memory for MSRBitMap
-    vmState[ProcessorID].MSRBitMap = MmAllocateNonCachedMemory(PAGE_SIZE); // should be aligned
-    if (vmState[ProcessorID].MSRBitMap == NULL)
+    //
+    g_GuestState[ProcessorID].MsrBitmap = MmAllocateNonCachedMemory(PAGE_SIZE); // should be aligned
+    if (g_GuestState[ProcessorID].MsrBitmap == NULL)
     {
         DbgPrint("[*] Error in allocating MSRBitMap.\n");
         return;
     }
-    RtlZeroMemory(vmState[ProcessorID].MSRBitMap, PAGE_SIZE);
-    vmState[ProcessorID].MSRBitMapPhysical = VirtualToPhysicalAddress(vmState[ProcessorID].MSRBitMap);
+    RtlZeroMemory(g_GuestState[ProcessorID].MsrBitmap, PAGE_SIZE);
+    g_GuestState[ProcessorID].MsrBitmapPhysical = VirtualToPhysicalAddress(g_GuestState[ProcessorID].MsrBitmap);
 
+    //
     // Clear the VMCS State
-    if (!Clear_VMCS_State(&vmState[ProcessorID]))
+    //
+    if (!ClearVmcsState(&g_GuestState[ProcessorID]))
     {
         goto ErrorReturn;
     }
 
+    //
     // Load VMCS (Set the Current VMCS)
-    if (!Load_VMCS(&vmState[ProcessorID]))
+    //
+    if (!LoadVmcs(&g_GuestState[ProcessorID]))
     {
         goto ErrorReturn;
     }
 
     DbgPrint("[*] Setting up VMCS.\n");
-    Setup_VMCS(&vmState[ProcessorID], EPTP);
+    SetupVmcs(&g_GuestState[ProcessorID], EPTP);
 
     DbgPrint("[*] Executing VMLAUNCH.\n");
 
@@ -110,35 +117,35 @@ LaunchVM(int ProcessorID, PEPTP EPTP)
 
     DbgPrint("\n===================================================================\n");
 
-    // Start responsing to interrupts
-    // STI_Instruction();
-
 ReturnWithoutError:
     __vmx_off();
     DbgPrint("[*] VMXOFF Executed Successfully. !\n");
 
     return TRUE;
+
+    //
     // Return With Error
+    //
 ErrorReturn:
     DbgPrint("[*] Fail to setup VMCS !\n");
     return FALSE;
 }
 
-void
-Terminate_VMX(void)
+VOID
+TerminateVmx()
 {
     DbgPrint("\n[*] Terminating VMX...\n");
 
-    KAFFINITY kAffinityMask;
-    for (size_t i = 0; i < ProcessorCounts; i++)
+    KAFFINITY AffinityMask;
+    for (size_t i = 0; i < g_ProcessorCounts; i++)
     {
-        kAffinityMask = MathPower(2, i);
-        KeSetSystemAffinityThread(kAffinityMask);
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
         DbgPrint("\t\tCurrent thread is executing in %d th logical processor.\n", i);
 
         __vmx_off();
-        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMXON_REGION));
-        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMCS_REGION));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmxoRegion));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmcsRegion));
     }
 
     DbgPrint("[*] VMX Operation turned off successfully. \n");
@@ -157,10 +164,10 @@ VMPTRST()
 }
 
 BOOLEAN
-Clear_VMCS_State(IN PVirtualMachineState vmState)
+ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState)
 {
     // Clear the state of the VMCS to inactive
-    int status = __vmx_vmclear(&vmState->VMCS_REGION);
+    int status = __vmx_vmclear(&GuestState->VmcsRegion);
 
     DbgPrint("[*] VMCS VMCLAEAR Status is : %d\n", status);
     if (status)
@@ -174,9 +181,9 @@ Clear_VMCS_State(IN PVirtualMachineState vmState)
 }
 
 BOOLEAN
-Load_VMCS(IN PVirtualMachineState vmState)
+LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState)
 {
-    int status = __vmx_vmptrld(&vmState->VMCS_REGION);
+    int status = __vmx_vmptrld(&GuestState->VmcsRegion);
     if (status)
     {
         DbgPrint("[*] VMCS failed with status %d\n", status);
@@ -186,7 +193,7 @@ Load_VMCS(IN PVirtualMachineState vmState)
 }
 
 BOOLEAN
-GetSegmentDescriptor(IN PSEGMENT_SELECTOR SegmentSelector, IN USHORT Selector, IN PUCHAR GdtBase)
+GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
 {
     PSEGMENT_DESCRIPTOR SegDesc;
 
@@ -223,7 +230,7 @@ GetSegmentDescriptor(IN PSEGMENT_SELECTOR SegmentSelector, IN USHORT Selector, I
 }
 
 BOOLEAN
-SetGuestSelector(IN PVOID GDT_Base, IN ULONG Segment_Register, IN USHORT Selector)
+SetGuestSelector(PVOID GDT_Base, ULONG Segment_Register, USHORT Selector)
 {
     SEGMENT_SELECTOR SegmentSelector = {0};
     ULONG            uAccessRights;
@@ -243,7 +250,7 @@ SetGuestSelector(IN PVOID GDT_Base, IN ULONG Segment_Register, IN USHORT Selecto
 }
 
 ULONG
-AdjustControls(IN ULONG Ctl, IN ULONG Msr)
+AdjustControls(ULONG Ctl, ULONG Msr)
 {
     MSR MsrValue = {0};
 
@@ -275,7 +282,7 @@ FillGuestSelectorData(
 }
 
 BOOLEAN
-Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP)
+SetupVmcs(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP)
 {
     BOOLEAN Status = FALSE;
 
@@ -380,7 +387,7 @@ Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP)
     __vmx_vmwrite(GUEST_RSP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest sp
     __vmx_vmwrite(GUEST_RIP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest ip
 
-    __vmx_vmwrite(HOST_RSP, ((ULONG64)vmState->VMM_Stack + VMM_STACK_SIZE - 1));
+    __vmx_vmwrite(HOST_RSP, ((ULONG64)GuestState->VmmStack + VMM_STACK_SIZE - 1));
     __vmx_vmwrite(HOST_RIP, (ULONG64)AsmVmexitHandler);
 
     Status = TRUE;
@@ -389,7 +396,7 @@ Exit:
 }
 
 VOID
-ResumeToNextInstruction(VOID)
+ResumeToNextInstruction()
 {
     PVOID ResumeRIP             = NULL;
     PVOID CurrentRIP            = NULL;
@@ -457,9 +464,9 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     {
         DbgPrint("[*] Execution of HLT detected... \n");
 
-        // DbgBreakPoint();
-
+        //
         // that's enough for now ;)
+        //
         AsmVmxoffAndRestoreState();
 
         break;

@@ -45,7 +45,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
         //
         PEPTP EPTP = InitializeEptp();
 
-        Initiate_VMX();
+        InitiateVmx();
 
         for (size_t i = 0; i < (100 * PAGE_SIZE) - 1; i++)
         {
@@ -58,7 +58,7 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
         //
         int ProcessorID = 0;
 
-        LaunchVM(ProcessorID, EPTP);
+        LaunchVm(ProcessorID, EPTP);
     }
     __except (GetExceptionCode())
     {
@@ -121,8 +121,10 @@ DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     DbgPrint("[*] DrvClose Called !\n");
 
+    //
     // executing VMXOFF on every logical processor
-    Terminate_VMX();
+    //
+    TerminateVmx();
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;

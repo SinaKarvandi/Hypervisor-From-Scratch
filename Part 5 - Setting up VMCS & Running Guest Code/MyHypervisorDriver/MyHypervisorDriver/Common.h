@@ -3,30 +3,61 @@
 #include <wdf.h>
 #include <wdm.h>
 
+//
+// Global variables
+//
 UINT64 g_StackPointerForReturning;
 UINT64 g_BasePointerForReturning;
 
+//
+// Drivers
+//
 NTSTATUS
 DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
+
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject);
+
 NTSTATUS
 DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
 NTSTATUS
 DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
 NTSTATUS
 DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
 NTSTATUS
 DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
 NTSTATUS
 DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
 NTSTATUS
 DrvIoctlDispatcher(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
 
+//
+// General functions
+//
 VOID
 PrintChars(_In_reads_(CountChars) PCHAR BufferAddress, _In_ size_t CountChars);
 VOID
 PrintIrpInfo(PIRP Irp);
+
+//
+// Segment registers
+//
+USHORT  GetCs(VOID);
+USHORT  GetDs(VOID);
+USHORT  GetEs(VOID);
+USHORT  GetSs(VOID);
+USHORT  GetFs(VOID);
+USHORT  GetGs(VOID);
+USHORT  GetLdtr(VOID);
+USHORT  GetTr(VOID);
+USHORT  GetIdtLimit(VOID);
+USHORT  GetGdtLimit(VOID);
+ULONG64 GetRflags(VOID);
 
 typedef struct _CPUID
 {
@@ -127,21 +158,6 @@ typedef struct _GUEST_REGS
     ULONG64 r14; // 0x70
     ULONG64 r15;
 } GUEST_REGS, *PGUEST_REGS;
-
-//
-// Segment registers
-//
-USHORT  GetCs(VOID);
-USHORT  GetDs(VOID);
-USHORT  GetEs(VOID);
-USHORT  GetSs(VOID);
-USHORT  GetFs(VOID);
-USHORT  GetGs(VOID);
-USHORT  GetLdtr(VOID);
-USHORT  GetTr(VOID);
-USHORT  GetIdtLimit(VOID);
-USHORT  GetGdtLimit(VOID);
-ULONG64 GetRflags(VOID);
 
 typedef union _RFLAGS
 {
