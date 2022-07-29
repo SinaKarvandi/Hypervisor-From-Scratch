@@ -82,8 +82,10 @@ DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     DbgPrint("[*] DrvCreate Called !\n");
 
+    //
     // Call VMPTRST
-    //	VMPTRST();
+    //
+    //	VmptrstInstruction();
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;

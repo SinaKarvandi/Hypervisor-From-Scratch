@@ -57,10 +57,9 @@ LaunchVm(int ProcessorID, PEPTP EPTP)
 
     PAGED_CODE();
 
-    // Get read of nasty interrupts :)
-    //	CLI_Instruction();
-
-    // Allocate stack for the VM Exit Handler.
+    //
+    // Allocate stack for the VM Exit Handler
+    //
     UINT64 VMM_STACK_VA                = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
     g_GuestState[ProcessorID].VmmStack = VMM_STACK_VA;
 
@@ -108,7 +107,9 @@ LaunchVm(int ProcessorID, PEPTP EPTP)
 
     __vmx_vmlaunch();
 
-    // if VMLAUNCH succeed will never be here !
+    //
+    // if VMLAUNCH succeeds will never be here!
+    //
     ULONG64 ErrorCode = 0;
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
@@ -152,7 +153,7 @@ TerminateVmx()
 }
 
 UINT64
-VMPTRST()
+VmptrstInstruction()
 {
     PHYSICAL_ADDRESS vmcspa;
     vmcspa.QuadPart = 0;
@@ -172,7 +173,7 @@ ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState)
     DbgPrint("[*] VMCS VMCLAEAR Status is : %d\n", status);
     if (status)
     {
-        // Otherwise terminate the VMX
+        // Otherwise, terminate the VMX
         DbgPrint("[*] VMCS failed to clear with status %d\n", status);
         __vmx_off();
         return FALSE;
@@ -193,7 +194,9 @@ LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState)
 }
 
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
+GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector,
+                     USHORT            Selector,
+                     PUCHAR            GdtBase)
 {
     PSEGMENT_DESCRIPTOR SegDesc;
 
@@ -214,10 +217,10 @@ GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR 
 
     if (!(SegDesc->ATTR0 & 0x10))
     { // LA_ACCESSED
-        ULONG64 tmp;
+        ULONG64 Tmp;
         // this is a TSS or callgate etc, save the base high part
-        tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
-        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (tmp << 32);
+        Tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
+        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (Tmp << 32);
     }
 
     if (SegmentSelector->ATTRIBUTES.Fields.G)
@@ -260,24 +263,24 @@ AdjustControls(ULONG Ctl, ULONG Msr)
     return Ctl;
 }
 
-void
+VOID
 FillGuestSelectorData(
-    __in PVOID  GdtBase,
-    __in ULONG  Segreg,
-    __in USHORT Selector)
+    PVOID  GdtBase,
+    ULONG  Segreg,
+    USHORT Selector)
 {
     SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG            uAccessRights;
+    ULONG            AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    uAccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
 
     if (!Selector)
-        uAccessRights |= 0x10000;
+        AccessRights |= 0x10000;
 
     __vmx_vmwrite(GUEST_ES_SELECTOR + Segreg * 2, Selector);
     __vmx_vmwrite(GUEST_ES_LIMIT + Segreg * 2, SegmentSelector.LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segreg * 2, uAccessRights);
+    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segreg * 2, AccessRights);
     __vmx_vmwrite(GUEST_ES_BASE + Segreg * 2, SegmentSelector.BASE);
 }
 
@@ -300,7 +303,9 @@ SetupVmcs(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP)
     __vmx_vmwrite(HOST_GS_SELECTOR, GetGs() & 0xF8);
     __vmx_vmwrite(HOST_TR_SELECTOR, GetTr() & 0xF8);
 
-    // Setting the link pointer to the required value for 4KB VMCS.
+    //
+    // Setting the link pointer to the required value for 4KB VMCS
+    //
     __vmx_vmwrite(VMCS_LINK_POINTER, ~0ULL);
 
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL, __readmsr(MSR_IA32_DEBUGCTL) & 0xFFFFFFFF);
@@ -383,7 +388,9 @@ SetupVmcs(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP)
     __vmx_vmwrite(HOST_IA32_SYSENTER_EIP, __readmsr(MSR_IA32_SYSENTER_EIP));
     __vmx_vmwrite(HOST_IA32_SYSENTER_ESP, __readmsr(MSR_IA32_SYSENTER_ESP));
 
+    //
     // left here just for test
+    //
     __vmx_vmwrite(GUEST_RSP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest sp
     __vmx_vmwrite(GUEST_RIP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest ip
 
@@ -415,15 +422,17 @@ VmResumeInstruction()
 {
     __vmx_vmresume();
 
-    // if VMRESUME succeed will never be here !
+    // if VMRESUME succeeds will never be here !
 
     ULONG64 ErrorCode = 0;
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
     DbgPrint("[*] VMRESUME Error : 0x%llx\n", ErrorCode);
 
-    // It's such a bad error because we don't where to go !
+    //
+    // It's such a bad error because we don't where to go!
     // prefer to break
+    //
     DbgBreakPoint();
 }
 

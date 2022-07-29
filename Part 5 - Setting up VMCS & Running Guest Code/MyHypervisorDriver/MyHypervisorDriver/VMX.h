@@ -305,7 +305,7 @@ BOOLEAN
 AllocateVmcsRegion(VIRTUAL_MACHINE_STATE * GuestState);
 
 UINT64
-VMPTRST();
+VmptrstInstruction();
 
 int
 MathPower(int Base, int Exp);
