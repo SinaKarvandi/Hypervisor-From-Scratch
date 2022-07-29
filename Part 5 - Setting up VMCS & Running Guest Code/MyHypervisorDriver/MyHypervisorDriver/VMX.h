@@ -12,6 +12,14 @@ typedef struct _VirtualMachineState
     UINT64 MSRBitMapPhysical; // MSRBitMap Physical Address
 } VirtualMachineState, *PVirtualMachineState;
 
+//
+// VMX Memory
+//
+#define ALIGNMENT_PAGE_SIZE 4096
+#define MAXIMUM_ADDRESS     0xffffffffffffffff
+#define VMCS_SIZE           4096
+#define VMXON_SIZE          4096
+
 // PIN-Based Execution
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING               0x00000008
@@ -258,7 +266,7 @@ enum VMCS_FIELDS
 
 extern PVirtualMachineState vmState;
 
-extern UINT64 VirtualGuestMemoryAddress;
+extern UINT64 g_VirtualGuestMemoryAddress;
 
 extern int ProcessorCounts;
 
@@ -270,33 +278,47 @@ ULONG ExitReason;
 
 void
 Initiate_VMX(void);
+
 void
 Terminate_VMX(void);
+
 UINT64
-VirtualAddress_to_PhysicalAddress(void * va);
+VirtualToPhysicalAddress(void * va);
+
 UINT64
-PhysicalAddress_to_VirtualAddress(UINT64 pa);
+PhysicalToVirtualAddress(UINT64 pa);
+
 BOOLEAN
 Allocate_VMXON_Region(IN PVirtualMachineState vmState);
+
 BOOLEAN
 Allocate_VMCS_Region(IN PVirtualMachineState vmState);
+
 UINT64
-VMPTRST(void);
+VMPTRST();
+
 void
 Run_On_Each_Logical_Processor(void * (*FunctionPtr)());
+
 int
 MathPower(int base, int exp);
+
 void
-Inline_Memory_Patcher(void);
-extern ULONG64 inline Get_GDT_Base(void);
-extern ULONG64 inline Get_IDT_Base(void);
-extern void inline Enable_VMX_Operation(void);
-extern void inline Restore_To_VMXOFF_State();
-extern void inline Save_VMXOFF_State();
+Inline_Memory_Patcher();
+
+extern ULONG64 inline GetGdtBase();
+extern ULONG64 inline GetIdtBase();
+extern void inline AsmEnableVmxOperation();
+extern void inline AsmVmxoffAndRestoreState();
+extern void inline AsmSaveStateForVmxoff();
 extern unsigned char inline INVEPT_Instruction(_In_ unsigned long type, _In_ void * descriptor);
+
 BOOLEAN
-     Is_VMX_Supported();
-VOID VMExitHandler(VOID);
+IsVmxSupported();
+
+extern void
+AsmVmexitHandler();
+
 void
 LaunchVM(int ProcessorID, PEPTP EPTP);
 BOOLEAN
@@ -304,5 +326,5 @@ Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP);
 BOOLEAN
 Load_VMCS(IN PVirtualMachineState vmState);
 BOOLEAN
-     Clear_VMCS_State(IN PVirtualMachineState vmState);
-VOID VM_Resumer(VOID);
+Clear_VMCS_State(IN PVirtualMachineState vmState);
+VOID VmResumeInstruction(VOID);

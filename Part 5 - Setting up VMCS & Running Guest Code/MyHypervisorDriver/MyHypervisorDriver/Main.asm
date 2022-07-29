@@ -1,8 +1,5 @@
-PUBLIC Enable_VMX_Operation
-PUBLIC Breakpoint
-PUBLIC STI_Instruction
-PUBLIC CLI_Instruction
-PUBLIC INVEPT_Instruction
+PUBLIC AsmEnableVmxOperation
+PUBLIC AsmPerformInvept
 PUBLIC GetCs
 PUBLIC GetDs
 PUBLIC GetEs
@@ -11,21 +8,18 @@ PUBLIC GetFs
 PUBLIC GetGs
 PUBLIC GetLdtr
 PUBLIC GetTr
-PUBLIC Get_GDT_Base
-PUBLIC Get_IDT_Base
-PUBLIC Get_GDT_Limit
-PUBLIC Get_IDT_Limit
-PUBLIC Get_RFLAGS
-PUBLIC Restore_To_VMXOFF_State
-PUBLIC Save_VMXOFF_State
-
+PUBLIC GetGdtBase
+PUBLIC GetIdtBase
+PUBLIC GetGdtLimit
+PUBLIC GetIdtLimit
+PUBLIC GetRflags
+PUBLIC AsmVmxoffAndRestoreState
+PUBLIC AsmSaveStateForVmxoff
 
 EXTERN g_StackPointerForReturning:QWORD
 EXTERN g_BasePointerForReturning:QWORD
 
-
 .code _text
-
 
 ;------------------------------------------------------------------------
     VMX_ERROR_CODE_SUCCESS              = 0
@@ -33,168 +27,213 @@ EXTERN g_BasePointerForReturning:QWORD
     VMX_ERROR_CODE_FAILED               = 2
 ;------------------------------------------------------------------------
 
-Enable_VMX_Operation PROC PUBLIC
-push rax			; Save the state
+AsmEnableVmxOperation PROC PUBLIC
 
-xor rax,rax			; Clear the RAX
-mov rax,cr4
-or rax,02000h		; Set the 14th bit
-mov cr4,rax
+	PUSH RAX			    ; Save the state
+	
+	XOR RAX, RAX			; Clear the RAX
+	MOV RAX, CR4
 
-pop rax				; Restore the state
-ret
-Enable_VMX_Operation ENDP
+	OR RAX,02000h	    	; Set the 14th bit
+	MOV CR4, RAX
+	
+	POP RAX			     	; Restore the state
+	RET
 
-;------------------------------------------------------------------------
-     
-Breakpoint PROC PUBLIC
-int 3
-ret
-Breakpoint ENDP 
+AsmEnableVmxOperation ENDP
 
 ;------------------------------------------------------------------------
 
-STI_Instruction PROC PUBLIC
-STI
-ret
-STI_Instruction ENDP 
+AsmPerformInvept PROC PUBLIC
+
+	INVEPT  RCX, OWORD PTR [RDX]
+	JZ FailedWithStatus
+	JC Failed
+	XOR     RAX, RAX
+
+	RET
+
+FailedWithStatus:    
+	MOV     RAX, VMX_ERROR_CODE_FAILED_WITH_STATUS
+	RET
+
+Failed:   
+	MOV     RAX, VMX_ERROR_CODE_FAILED
+	RET
+
+AsmPerformInvept ENDP
 
 ;------------------------------------------------------------------------
 
-CLI_Instruction PROC PUBLIC
-CLI
-ret
-CLI_Instruction ENDP 
-;------------------------------------------------------------------------
+AsmVmxoffAndRestoreState PROC PUBLIC
 
-Restore_To_VMXOFF_State PROC PUBLIC
+	VMXOFF  ; turn it off before existing
+	
+	MOV RSP, g_StackPointerForReturning
+	MOV RBP, g_BasePointerForReturning
+	
+	; make rsp point to a correct return point
+	ADD RSP, 8
+	
+	; return True
 
-VMXOFF  ; turn it off before existing
-
-MOV rsp, g_StackPointerForReturning
-MOV rbp, g_BasePointerForReturning
-
-; make rsp point to a correct return point
-ADD rsp,8
-
-; return True
-xor rax,rax
-mov rax,1
-
-; return section
-
-mov     rbx, [rsp+28h+8h]
-mov     rsi, [rsp+28h+10h]
-add     rsp, 020h
-pop     rdi
-
-ret
-
-Restore_To_VMXOFF_State ENDP 
+	XOR RAX, RAX
+	MOV RAX, 1
+	
+	; return section
+	
+	MOV     RBX, [RSP+28h+8h]
+	MOV     RSI, [RSP+28h+10h]
+	ADD     RSP, 020h
+	POP     RDI
+	
+	RET
+	
+AsmVmxoffAndRestoreState ENDP 
 
 ;------------------------------------------------------------------------
 
-Save_VMXOFF_State PROC PUBLIC
-MOV g_StackPointerForReturning,rsp
-MOV g_BasePointerForReturning,rbp
-ret
+AsmSaveStateForVmxoff PROC PUBLIC
 
-Save_VMXOFF_State ENDP 
+	MOV g_StackPointerForReturning, RSP
+	MOV g_BasePointerForReturning, RBP
 
-;------------------------------------------------------------------------
-INVEPT_Instruction PROC PUBLIC
-        invept  rcx, oword ptr [rdx]
-        jz @jz
-        jc @jc
-        xor     rax, rax
-        ret
+	RET
 
-@jz:    mov     rax, VMX_ERROR_CODE_FAILED_WITH_STATUS
-        ret
-
-@jc:    mov     rax, VMX_ERROR_CODE_FAILED
-        ret
-INVEPT_Instruction ENDP
+AsmSaveStateForVmxoff ENDP 
 
 ;------------------------------------------------------------------------
-Get_GDT_Base PROC
-	LOCAL	gdtr[10]:BYTE
-	sgdt	gdtr
-	mov		rax, QWORD PTR gdtr[2]
-	ret
-Get_GDT_Base ENDP
+
+GetGdtBase PROC
+
+	LOCAL	GDTR[10]:BYTE
+	SGDT	GDTR
+	MOV		RAX, QWORD PTR GDTR[2]
+
+	RET
+
+GetGdtBase ENDP
+
 ;------------------------------------------------------------------------
+
 GetCs PROC
-	mov		rax, cs
-	ret
+
+	MOV		RAX, CS
+	RET
+
 GetCs ENDP
+
 ;------------------------------------------------------------------------
+
 GetDs PROC
-	mov		rax, ds
-	ret
+
+	MOV		RAX, DS
+	RET
+
 GetDs ENDP
+
 ;------------------------------------------------------------------------
+
 GetEs PROC
-	mov		rax, es
-	ret
+
+	MOV		RAX, ES
+	RET
+
 GetEs ENDP
+
 ;------------------------------------------------------------------------
+
 GetSs PROC
-	mov		rax, ss
-	ret
+
+	MOV		RAX, SS
+	RET
+
 GetSs ENDP
+
 ;------------------------------------------------------------------------
+
 GetFs PROC
-	mov		rax, fs
-	ret
+
+	MOV		RAX, FS
+	RET
+
 GetFs ENDP
+
 ;------------------------------------------------------------------------
+
 GetGs PROC
-	mov		rax, gs
-	ret
+
+	MOV		RAX, GS
+	RET
+
 GetGs ENDP
+
 ;------------------------------------------------------------------------
+
 GetLdtr PROC
-	sldt	rax
-	ret
+
+	SLDT	RAX
+	RET
+
 GetLdtr ENDP
+
 ;------------------------------------------------------------------------
+
 GetTr PROC
-	str	rax
-	ret
+
+	STR		RAX
+	RET
+
 GetTr ENDP
+
 ;------------------------------------------------------------------------
-Get_IDT_Base PROC
-	LOCAL	idtr[10]:BYTE
+
+GetIdtBase PROC
+
+	LOCAL	IDTR[10]:BYTE
 	
-	sidt	idtr
-	mov		rax, QWORD PTR idtr[2]
-	ret
-Get_IDT_Base ENDP
-;------------------------------------------------------------------------
+	SIDT	IDTR
+	MOV		RAX, QWORD PTR IDTR[2]
+	RET
 
-Get_GDT_Limit PROC
-	LOCAL	gdtr[10]:BYTE
-
-	sgdt	gdtr
-	mov		ax, WORD PTR gdtr[0]
-	ret
-Get_GDT_Limit ENDP
+GetIdtBase ENDP
 
 ;------------------------------------------------------------------------
-Get_IDT_Limit PROC
-	LOCAL	idtr[10]:BYTE
+
+GetGdtLimit PROC
+
+	LOCAL	GDTR[10]:BYTE
+
+	SGDT	GDTR
+	MOV		AX, WORD PTR GDTR[0]
+
+	RET
+
+GetGdtLimit ENDP
+
+;------------------------------------------------------------------------
+
+GetIdtLimit PROC
+
+	LOCAL	IDTR[10]:BYTE
 	
-	sidt	idtr
-	mov		ax, WORD PTR idtr[0]
-	ret
-Get_IDT_Limit ENDP
+	SIDT	IDTR
+	MOV		AX, WORD PTR IDTR[0]
+
+	RET
+
+GetIdtLimit ENDP
+
 ;------------------------------------------------------------------------
-Get_RFLAGS PROC
-	pushfq
-	pop		rax
-	ret
-Get_RFLAGS ENDP
+
+GetRflags PROC
+
+	PUSHFQ
+	POP		RAX
+	RET
+
+GetRflags ENDP
+
 ;------------------------------------------------------------------------
 
 END

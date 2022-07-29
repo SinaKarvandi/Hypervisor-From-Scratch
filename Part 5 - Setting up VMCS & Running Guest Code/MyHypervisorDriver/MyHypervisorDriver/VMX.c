@@ -9,7 +9,7 @@ int                  ProcessorCounts;
 void
 Initiate_VMX(void)
 {
-    if (!Is_VMX_Supported())
+    if (!IsVmxSupported())
     {
         DbgPrint("[*] VMX is not supported in this machine !\n");
         return;
@@ -30,7 +30,7 @@ Initiate_VMX(void)
         // do st here !
         DbgPrint("\t\tCurrent thread is executing in %d th logical processor.\n", i);
 
-        Enable_VMX_Operation(); // Enabling VMX Operation
+        AsmEnableVmxOperation(); // Enabling VMX Operation
         DbgPrint("[*] VMX Operation Enabled Successfully !\n");
 
         Allocate_VMXON_Region(&vmState[i]);
@@ -78,7 +78,7 @@ LaunchVM(int ProcessorID, PEPTP EPTP)
         return;
     }
     RtlZeroMemory(vmState[ProcessorID].MSRBitMap, PAGE_SIZE);
-    vmState[ProcessorID].MSRBitMapPhysical = VirtualAddress_to_PhysicalAddress(vmState[ProcessorID].MSRBitMap);
+    vmState[ProcessorID].MSRBitMapPhysical = VirtualToPhysicalAddress(vmState[ProcessorID].MSRBitMap);
 
     // Clear the VMCS State
     if (!Clear_VMCS_State(&vmState[ProcessorID]))
@@ -97,7 +97,7 @@ LaunchVM(int ProcessorID, PEPTP EPTP)
 
     DbgPrint("[*] Executing VMLAUNCH.\n");
 
-    Save_VMXOFF_State();
+    AsmSaveStateForVmxoff();
 
     __vmx_vmlaunch();
 
@@ -137,8 +137,8 @@ Terminate_VMX(void)
         DbgPrint("\t\tCurrent thread is executing in %d th logical processor.\n", i);
 
         __vmx_off();
-        MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMXON_REGION));
-        MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMCS_REGION));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMXON_REGION));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMCS_REGION));
     }
 
     DbgPrint("[*] VMX Operation turned off successfully. \n");
@@ -312,7 +312,7 @@ Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP)
     __vmx_vmwrite(VM_ENTRY_MSR_LOAD_COUNT, 0);
     __vmx_vmwrite(VM_ENTRY_INTR_INFO_FIELD, 0);
 
-    GdtBase = Get_GDT_Base();
+    GdtBase = GetGdtBase();
 
     FillGuestSelectorData((PVOID)GdtBase, ES, GetEs());
     FillGuestSelectorData((PVOID)GdtBase, CS, GetCs());
@@ -352,36 +352,36 @@ Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP)
     __vmx_vmwrite(HOST_CR3, __readcr3());
     __vmx_vmwrite(HOST_CR4, __readcr4());
 
-    __vmx_vmwrite(GUEST_GDTR_BASE, Get_GDT_Base());
-    __vmx_vmwrite(GUEST_IDTR_BASE, Get_IDT_Base());
-    __vmx_vmwrite(GUEST_GDTR_LIMIT, Get_GDT_Limit());
-    __vmx_vmwrite(GUEST_IDTR_LIMIT, Get_IDT_Limit());
+    __vmx_vmwrite(GUEST_GDTR_BASE, GetGdtBase());
+    __vmx_vmwrite(GUEST_IDTR_BASE, GetIdtBase());
+    __vmx_vmwrite(GUEST_GDTR_LIMIT, GetGdtLimit());
+    __vmx_vmwrite(GUEST_IDTR_LIMIT, GetIdtLimit());
 
-    __vmx_vmwrite(GUEST_RFLAGS, Get_RFLAGS());
+    __vmx_vmwrite(GUEST_RFLAGS, GetRflags());
 
     __vmx_vmwrite(GUEST_SYSENTER_CS, __readmsr(MSR_IA32_SYSENTER_CS));
     __vmx_vmwrite(GUEST_SYSENTER_EIP, __readmsr(MSR_IA32_SYSENTER_EIP));
     __vmx_vmwrite(GUEST_SYSENTER_ESP, __readmsr(MSR_IA32_SYSENTER_ESP));
 
-    GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)Get_GDT_Base());
+    GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)GetGdtBase());
     __vmx_vmwrite(HOST_TR_BASE, SegmentSelector.BASE);
 
     __vmx_vmwrite(HOST_FS_BASE, __readmsr(MSR_FS_BASE));
     __vmx_vmwrite(HOST_GS_BASE, __readmsr(MSR_GS_BASE));
 
-    __vmx_vmwrite(HOST_GDTR_BASE, Get_GDT_Base());
-    __vmx_vmwrite(HOST_IDTR_BASE, Get_IDT_Base());
+    __vmx_vmwrite(HOST_GDTR_BASE, GetGdtBase());
+    __vmx_vmwrite(HOST_IDTR_BASE, GetIdtBase());
 
     __vmx_vmwrite(HOST_IA32_SYSENTER_CS, __readmsr(MSR_IA32_SYSENTER_CS));
     __vmx_vmwrite(HOST_IA32_SYSENTER_EIP, __readmsr(MSR_IA32_SYSENTER_EIP));
     __vmx_vmwrite(HOST_IA32_SYSENTER_ESP, __readmsr(MSR_IA32_SYSENTER_ESP));
 
     // left here just for test
-    __vmx_vmwrite(GUEST_RSP, (ULONG64)VirtualGuestMemoryAddress); // setup guest sp
-    __vmx_vmwrite(GUEST_RIP, (ULONG64)VirtualGuestMemoryAddress); // setup guest ip
+    __vmx_vmwrite(GUEST_RSP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest sp
+    __vmx_vmwrite(GUEST_RIP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest ip
 
     __vmx_vmwrite(HOST_RSP, ((ULONG64)vmState->VMM_Stack + VMM_STACK_SIZE - 1));
-    __vmx_vmwrite(HOST_RIP, (ULONG64)VMExitHandler);
+    __vmx_vmwrite(HOST_RIP, (ULONG64)AsmVmexitHandler);
 
     Status = TRUE;
 Exit:
@@ -404,7 +404,7 @@ ResumeToNextInstruction(VOID)
 }
 
 VOID
-VM_Resumer(VOID)
+VmResumeInstruction()
 {
     __vmx_vmresume();
 
@@ -421,7 +421,7 @@ VM_Resumer(VOID)
 }
 
 VOID
-MainVMExitHandler(PGUEST_REGS GuestRegs)
+MainVmexitHandler(PGUEST_REGS GuestRegs)
 {
     ULONG ExitReason = 0;
     __vmx_vmread(VM_EXIT_REASON, &ExitReason);
@@ -460,7 +460,7 @@ MainVMExitHandler(PGUEST_REGS GuestRegs)
         // DbgBreakPoint();
 
         // that's enough for now ;)
-        Restore_To_VMXOFF_State();
+        AsmVmxoffAndRestoreState();
 
         break;
     }

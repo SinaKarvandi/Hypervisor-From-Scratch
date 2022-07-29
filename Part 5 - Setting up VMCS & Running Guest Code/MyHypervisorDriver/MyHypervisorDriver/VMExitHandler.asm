@@ -1,61 +1,56 @@
-PUBLIC VMExitHandler
+PUBLIC AsmVmexitHandler
 
-
-EXTERN MainVMExitHandler:PROC
-EXTERN VM_Resumer:PROC
+EXTERN MainVmexitHandler:PROC
+EXTERN VmResumeInstruction:PROC
 
 .code _text
 
-VMExitHandler PROC
+AsmVmexitHandler PROC
 
-    push r15
-    push r14
-    push r13
-    push r12
-    push r11
-    push r10
-    push r9
-    push r8        
-    push rdi
-    push rsi
-    push rbp
-    push rbp	; rsp
-    push rbx
-    push rdx
-    push rcx
-    push rax	
+    PUSH R15
+    PUSH R14
+    PUSH R13
+    PUSH R12
+    PUSH R11
+    PUSH R10
+    PUSH R9
+    PUSH R8        
+    PUSH RDI
+    PUSH RSI
+    PUSH RBP
+    PUSH RBP	; RSP
+    PUSH RBX
+    PUSH RDX
+    PUSH RCX
+    PUSH RAX	
 
+	MOV RCX, RSP		; GuestRegs
+	SUB	RSP, 28h
 
-	mov rcx, rsp		;GuestRegs
-	sub	rsp, 28h
+	CALL	MainVmexitHandler
+	ADD	RSP, 28h	
 
-	;rdtsc
-	call	MainVMExitHandler
-	add	rsp, 28h	
+	POP RAX
+    POP RCX
+    POP RDX
+    POP RBX
+    POP RBP		; RSP
+    POP RBP
+    POP RSI
+    POP RDI 
+    POP R8
+    POP R9
+    POP R10
+    POP R11
+    POP R12
+    POP R13
+    POP R14
+    POP R15
 
-
-	pop rax
-    pop rcx
-    pop rdx
-    pop rbx
-    pop rbp		; rsp
-    pop rbp
-    pop rsi
-    pop rdi 
-    pop r8
-    pop r9
-    pop r10
-    pop r11
-    pop r12
-    pop r13
-    pop r14
-    pop r15
-
-
-	sub rsp, 0100h ; to avoid error in future functions
-	JMP VM_Resumer
+	SUB RSP, 0100h ; to avoid error in future functions
 	
+    JMP VmResumeInstruction
+	
+AsmVmexitHandler ENDP
 
-VMExitHandler ENDP
-
-end
+END

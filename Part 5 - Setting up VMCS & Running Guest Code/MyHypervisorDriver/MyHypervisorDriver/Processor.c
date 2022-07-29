@@ -26,34 +26,39 @@ MathPower(int base, int exp)
 }
 
 void
-Run_On_Each_Logical_Processor(void * (*FunctionPtr)())
+RunOnEachLogicalProcessor(void * (*FunctionPtr)())
 {
-    KAFFINITY kAffinityMask;
+    KAFFINITY AffinityMask;
     for (size_t i = 0; i < KeQueryActiveProcessors(); i++)
     {
-        kAffinityMask = MathPower(2, i);
-        KeSetSystemAffinityThread(kAffinityMask);
-        // do st here !
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
+
         DbgPrint("=====================================================");
         DbgPrint("Current thread is executing in %d th logical processor.", i);
+
         FunctionPtr();
     }
 }
 
 BOOLEAN
-Is_VMX_Supported()
+IsVmxSupported()
 {
-    CPUID data = {0};
+    CPUID Data = {0};
 
-    // VMX bit
-    __cpuid((int *)&data, 1);
-    if ((data.ecx & (1 << 5)) == 0)
+    //
+    // Check for the VMX bit
+    //
+    __cpuid((int *)&Data, 1);
+    if ((Data.ecx & (1 << 5)) == 0)
         return FALSE;
 
     IA32_FEATURE_CONTROL_MSR Control = {0};
     Control.All                      = __readmsr(MSR_IA32_FEATURE_CONTROL);
 
+    //
     // BIOS lock check
+    //
     if (Control.Fields.Lock == 0)
     {
         Control.Fields.Lock        = TRUE;

@@ -31,9 +31,13 @@
 </p>
 
 # Hypervisor From Scratch
-Source code of a multiple series of tutorials about the hypervisor. Available at: https://rayanfam.com/tutorials
 
 **These articles are entirely revised and updated (new materials and additional explanations added) in August 2022.**
+
+Source code of a multiple series of tutorials about the hypervisor. 
+
+Available at: https://rayanfam.com/tutorials
+
 
 **Part 1 - Basic Concepts & Configure Testing Environment**
 (https://rayanfam.com/topics/hypervisor-from-scratch-part-1/)
