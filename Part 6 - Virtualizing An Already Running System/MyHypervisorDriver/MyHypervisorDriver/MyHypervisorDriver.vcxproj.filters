@@ -38,9 +38,6 @@
     <ClCompile Include="EPT.c">
       <Filter>Source Files\Memory</Filter>
     </ClCompile>
-    <ClCompile Include="ProtectedMode.c">
-      <Filter>Source Files\Common</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MSR.h">
@@ -53,9 +50,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProtectedMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

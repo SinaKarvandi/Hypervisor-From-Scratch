@@ -148,6 +148,7 @@ enum INVEPT_TYPE
     SINGLE_CONTEXT = 0x00000001,
     ALL_CONTEXTS   = 0x00000002,
 };
+
 //
 // EPT Functions
 //

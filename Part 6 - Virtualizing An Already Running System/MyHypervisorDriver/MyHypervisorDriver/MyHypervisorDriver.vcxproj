@@ -81,7 +81,6 @@
     <ClCompile Include="Memory.c" />
     <ClCompile Include="Driver.c" />
     <ClCompile Include="Processor.c" />
-    <ClCompile Include="ProtectedMode.c" />
     <ClCompile Include="VMX.c" />
   </ItemGroup>
   <ItemGroup>
@@ -90,7 +89,6 @@
     <MASM Include="VMXState.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ProtectedMode.h" />
     <ClInclude Include="VMX.h" />
     <ClInclude Include="EPT.h" />
     <ClInclude Include="MSR.h" />

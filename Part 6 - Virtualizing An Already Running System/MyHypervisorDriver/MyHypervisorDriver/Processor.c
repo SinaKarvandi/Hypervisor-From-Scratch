@@ -5,117 +5,119 @@
 #include "Common.h"
 #include "VMX.h"
 
-
-
-int ipow(int base, int exp) {
-	int result = 1;
-	for (;;)
-	{
-		if (exp & 1)
-		{
-			result *= base;
-		}
-		exp >>= 1;
-		if (!exp)
-		{
-			break;
-		}
-		base *= base;
-	}
-	return result;
-}
-
-BOOLEAN RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine)
+int
+MathPower(int Base, int Exp)
 {
-	KIRQL OldIrql;
-
-	KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
-
-	OldIrql = KeRaiseIrqlToDpcLevel();
-
-	Routine(ProcessorNumber, EPTP);
-
-
-	KeLowerIrql(OldIrql);
-
-	KeRevertToUserAffinityThread();
-
-	return TRUE;
+    int Result = 1;
+    for (;;)
+    {
+        if (Exp & 1)
+        {
+            Result *= Base;
+        }
+        Exp >>= 1;
+        if (!Exp)
+        {
+            break;
+        }
+        Base *= Base;
+    }
+    return Result;
 }
 
-BOOLEAN RunOnProcessorForTerminateVMX(ULONG ProcessorNumber)
+BOOLEAN
+RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine)
 {
-	KIRQL OldIrql;
+    KIRQL OldIrql;
 
-	KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
+    KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
 
-	OldIrql = KeRaiseIrqlToDpcLevel();
+    OldIrql = KeRaiseIrqlToDpcLevel();
 
-	// Our routine is VMXOFF
-	INT32 cpu_info[4];
-	__cpuidex(cpu_info, 0x41414141, 0x42424242);
+    Routine(ProcessorNumber, EPTP);
 
-	KeLowerIrql(OldIrql);
+    KeLowerIrql(OldIrql);
 
-	KeRevertToUserAffinityThread();
+    KeRevertToUserAffinityThread();
 
-	return TRUE;
+    return TRUE;
 }
 
-
-BOOLEAN Is_VMX_Supported()
+BOOLEAN
+RunOnProcessorForTerminateVMX(ULONG ProcessorNumber)
 {
-	CPUID data = { 0 };
+    KIRQL OldIrql;
 
-	// VMX bit
-	__cpuid((int*)&data, 1);
-	if ((data.ecx & (1 << 5)) == 0)
-		return FALSE;
+    KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
 
-	IA32_FEATURE_CONTROL_MSR Control = { 0 };
-	Control.All = __readmsr(MSR_IA32_FEATURE_CONTROL);
+    OldIrql = KeRaiseIrqlToDpcLevel();
 
-	// BIOS lock check
-	if (Control.Fields.Lock == 0)
-	{
-		Control.Fields.Lock = TRUE;
-		Control.Fields.EnableVmxon = TRUE;
-		__writemsr(MSR_IA32_FEATURE_CONTROL, Control.All);
-	}
-	else if (Control.Fields.EnableVmxon == FALSE)
-	{
-		DbgPrint("[*] VMX locked off in BIOS");
-		return FALSE;
-	}
+    // Our routine is VMXOFF
+    INT32 cpu_info[4];
+    __cpuidex(cpu_info, 0x41414141, 0x42424242);
 
-	return TRUE;
+    KeLowerIrql(OldIrql);
+
+    KeRevertToUserAffinityThread();
+
+    return TRUE;
 }
 
-void SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set) {
+BOOLEAN
+IsVmxSupported()
+{
+    CPUID Data = {0};
 
-	PAGED_CODE();
-	UINT64 byte = bit / 8;
-	UINT64 temp = bit % 8;
-	UINT64 n = 7 - temp;
+    // VMX bit
+    __cpuid((int *)&Data, 1);
+    if ((Data.ecx & (1 << 5)) == 0)
+        return FALSE;
 
-	BYTE* Addr2 = Addr;
-	if (Set)
-	{
-		Addr2[byte] |= (1 << n);
-	}
-	else
-	{
-		Addr2[byte] &= ~(1 << n);
+    IA32_FEATURE_CONTROL_MSR Control = {0};
+    Control.All                      = __readmsr(MSR_IA32_FEATURE_CONTROL);
 
-	}
+    // BIOS lock check
+    if (Control.Fields.Lock == 0)
+    {
+        Control.Fields.Lock        = TRUE;
+        Control.Fields.EnableVmxon = TRUE;
+        __writemsr(MSR_IA32_FEATURE_CONTROL, Control.All);
+    }
+    else if (Control.Fields.EnableVmxon == FALSE)
+    {
+        DbgPrint("[*] VMX locked off in BIOS");
+        return FALSE;
+    }
 
+    return TRUE;
 }
 
-void GetBit(PVOID Addr, UINT64 bit) {
-	UINT64 byte = 0, k = 0;
-	byte = bit / 8;
-	k = 7 - bit % 8;
-	BYTE* Addr2 = Addr;
+void
+SetBit(PVOID Addr, UINT64 Bit, BOOLEAN Set)
+{
+    PAGED_CODE();
+    UINT64 byte = Bit / 8;
+    UINT64 temp = Bit % 8;
+    UINT64 n    = 7 - temp;
 
-	return Addr2[byte] & (1 << k);
+    BYTE * Addr2 = Addr;
+    if (Set)
+    {
+        Addr2[byte] |= (1 << n);
+    }
+    else
+    {
+        Addr2[byte] &= ~(1 << n);
+    }
+}
+
+void
+GetBit(PVOID Addr, UINT64 Bit)
+{
+    UINT64 byte = 0, k = 0;
+    byte         = Bit / 8;
+    k            = 7 - Bit % 8;
+    BYTE * Addr2 = Addr;
+
+    return Addr2[byte] & (1 << k);
 }

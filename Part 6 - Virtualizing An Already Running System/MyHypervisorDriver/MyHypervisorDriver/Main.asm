@@ -1,8 +1,8 @@
-PUBLIC Enable_VMX_Operation
+PUBLIC EnableVmxOperation
 PUBLIC Breakpoint
 PUBLIC STI_Instruction
 PUBLIC CLI_Instruction
-PUBLIC INVEPT_Instruction
+PUBLIC AsmPerformInvept
 PUBLIC GetCs
 PUBLIC GetDs
 PUBLIC GetEs
@@ -34,7 +34,7 @@ EXTERN g_BasePointerForReturning:QWORD
     VMX_ERROR_CODE_FAILED               = 2
 ;------------------------------------------------------------------------
 
-Enable_VMX_Operation PROC PUBLIC
+EnableVmxOperation PROC PUBLIC
 push rax			; Save the state
 
 xor rax,rax			; Clear the RAX
@@ -44,7 +44,7 @@ mov cr4,rax
 
 pop rax				; Restore the state
 ret
-Enable_VMX_Operation ENDP
+EnableVmxOperation ENDP
 
 ;------------------------------------------------------------------------
      
@@ -103,21 +103,28 @@ ret
 Save_VMXOFF_State ENDP 
 
 ;------------------------------------------------------------------------
-INVEPT_Instruction PROC PUBLIC
-        invept  rcx, oword ptr [rdx]
-        jz @jz
-        jc @jc
-        xor     rax, rax
-        ret
 
-@jz:    mov     rax, VMX_ERROR_CODE_FAILED_WITH_STATUS
-        ret
+AsmPerformInvept PROC PUBLIC
 
-@jc:    mov     rax, VMX_ERROR_CODE_FAILED
-        ret
-INVEPT_Instruction ENDP
+	INVEPT  RCX, OWORD PTR [RDX]
+	JZ FailedWithStatus
+	JC Failed
+	XOR     RAX, RAX
+
+	RET
+
+FailedWithStatus:    
+	MOV     RAX, VMX_ERROR_CODE_FAILED_WITH_STATUS
+	RET
+
+Failed:   
+	MOV     RAX, VMX_ERROR_CODE_FAILED
+	RET
+
+AsmPerformInvept ENDP
 
 ;------------------------------------------------------------------------
+
 Get_GDT_Base PROC
 	LOCAL	gdtr[10]:BYTE
 	sgdt	gdtr
