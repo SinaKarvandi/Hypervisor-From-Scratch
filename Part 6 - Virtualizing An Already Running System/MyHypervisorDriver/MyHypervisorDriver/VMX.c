@@ -6,8 +6,8 @@
 PVirtualMachineState vmState;
 int                  ProcessorCounts;
 
-void
-Initiate_VMX(void)
+VOID
+InitializeVmx()
 {
     if (!IsVmxSupported())
     {
@@ -89,8 +89,8 @@ ErrorReturn:
     return FALSE;
 }
 
-void
-Terminate_VMX(void)
+VOID
+TerminateVmx()
 {
     DbgPrint("\n[*] Terminating VMX...\n");
 
@@ -279,7 +279,7 @@ Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPT
     __vmx_vmwrite(VM_ENTRY_MSR_LOAD_COUNT, 0);
     __vmx_vmwrite(VM_ENTRY_INTR_INFO_FIELD, 0);
 
-    GdtBase = Get_GDT_Base();
+    GdtBase = GetGdtBase();
 
     FillGuestSelectorData((PVOID)GdtBase, ES, GetEs());
     FillGuestSelectorData((PVOID)GdtBase, CS, GetCs());
@@ -324,25 +324,25 @@ Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPT
     __vmx_vmwrite(HOST_CR3, __readcr3());
     __vmx_vmwrite(HOST_CR4, __readcr4());
 
-    __vmx_vmwrite(GUEST_GDTR_BASE, Get_GDT_Base());
-    __vmx_vmwrite(GUEST_IDTR_BASE, Get_IDT_Base());
-    __vmx_vmwrite(GUEST_GDTR_LIMIT, Get_GDT_Limit());
-    __vmx_vmwrite(GUEST_IDTR_LIMIT, Get_IDT_Limit());
+    __vmx_vmwrite(GUEST_GDTR_BASE, GetGdtBase());
+    __vmx_vmwrite(GUEST_IDTR_BASE, GetIdtBase());
+    __vmx_vmwrite(GUEST_GDTR_LIMIT, GetGdtLimit());
+    __vmx_vmwrite(GUEST_IDTR_LIMIT, GetIdtLimit());
 
-    __vmx_vmwrite(GUEST_RFLAGS, Get_RFLAGS());
+    __vmx_vmwrite(GUEST_RFLAGS, GetRflags());
 
     __vmx_vmwrite(GUEST_SYSENTER_CS, __readmsr(MSR_IA32_SYSENTER_CS));
     __vmx_vmwrite(GUEST_SYSENTER_EIP, __readmsr(MSR_IA32_SYSENTER_EIP));
     __vmx_vmwrite(GUEST_SYSENTER_ESP, __readmsr(MSR_IA32_SYSENTER_ESP));
 
-    GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)Get_GDT_Base());
+    GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)GetGdtBase());
     __vmx_vmwrite(HOST_TR_BASE, SegmentSelector.BASE);
 
     __vmx_vmwrite(HOST_FS_BASE, __readmsr(MSR_FS_BASE));
     __vmx_vmwrite(HOST_GS_BASE, __readmsr(MSR_GS_BASE));
 
-    __vmx_vmwrite(HOST_GDTR_BASE, Get_GDT_Base());
-    __vmx_vmwrite(HOST_IDTR_BASE, Get_IDT_Base());
+    __vmx_vmwrite(HOST_GDTR_BASE, GetGdtBase());
+    __vmx_vmwrite(HOST_IDTR_BASE, GetIdtBase());
 
     __vmx_vmwrite(HOST_IA32_SYSENTER_CS, __readmsr(MSR_IA32_SYSENTER_CS));
     __vmx_vmwrite(HOST_IA32_SYSENTER_EIP, __readmsr(MSR_IA32_SYSENTER_EIP));
@@ -352,10 +352,10 @@ Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPT
     __vmx_vmwrite(MSR_BITMAP, vmState->MSRBitMapPhysical);
 
     __vmx_vmwrite(GUEST_RSP, (ULONG64)GuestStack);      // setup guest sp
-    __vmx_vmwrite(GUEST_RIP, (ULONG64)VMXRestoreState); // setup guest ip
+    __vmx_vmwrite(GUEST_RIP, (ULONG64)VmxRestoreState); // setup guest ip
 
     __vmx_vmwrite(HOST_RSP, ((ULONG64)vmState->VMM_Stack + VMM_STACK_SIZE - 1));
-    __vmx_vmwrite(HOST_RIP, (ULONG64)VMExitHandler);
+    __vmx_vmwrite(HOST_RIP, (ULONG64)VmexitHandler);
 
     Status = TRUE;
 Exit:
@@ -378,7 +378,7 @@ ResumeToNextInstruction(VOID)
 }
 
 VOID
-VM_Resumer(VOID)
+VmResumeInstruction(VOID)
 {
     __vmx_vmresume();
 
@@ -606,14 +606,14 @@ SetTargetControls(UINT64 CR3, UINT64 Index)
 
     if (CR3 == 0)
     {
-        if (gCR3_Target_Count <= 0)
+        if (g_Cr3TargetCount <= 0)
         {
-            // Invalid command as gCR3_Target_Count cannot be less than zero
+            // Invalid command as g_Cr3TargetCount cannot be less than zero
             return FALSE;
         }
         else
         {
-            gCR3_Target_Count -= 1;
+            g_Cr3TargetCount -= 1;
             if (Index == 0)
             {
                 __vmx_vmwrite(CR3_TARGET_VALUE0, 0);
@@ -650,15 +650,15 @@ SetTargetControls(UINT64 CR3, UINT64 Index)
         {
             __vmx_vmwrite(CR3_TARGET_VALUE3, CR3);
         }
-        gCR3_Target_Count += 1;
+        g_Cr3TargetCount += 1;
     }
 
-    __vmx_vmwrite(CR3_TARGET_COUNT, gCR3_Target_Count);
+    __vmx_vmwrite(CR3_TARGET_COUNT, g_Cr3TargetCount);
     return TRUE;
 }
 
 BOOLEAN
-MainVMExitHandler(PGUEST_REGS GuestRegs)
+MainVmexitHandler(PGUEST_REGS GuestRegs)
 {
     BOOLEAN Status = FALSE;
 
@@ -748,13 +748,13 @@ MainVMExitHandler(PGUEST_REGS GuestRegs)
             // We have to save GUEST_RIP & GUEST_RSP somewhere to restore them directly
 
             ULONG ExitInstructionLength = 0;
-            gGuestRIP                   = 0;
-            gGuestRSP                   = 0;
-            __vmx_vmread(GUEST_RIP, &gGuestRIP);
-            __vmx_vmread(GUEST_RSP, &gGuestRSP);
+            g_GuestRIP                  = 0;
+            g_GuestRSP                  = 0;
+            __vmx_vmread(GUEST_RIP, &g_GuestRIP);
+            __vmx_vmread(GUEST_RSP, &g_GuestRSP);
             __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
 
-            gGuestRIP += ExitInstructionLength;
+            g_GuestRIP += ExitInstructionLength;
         }
         break;
     }

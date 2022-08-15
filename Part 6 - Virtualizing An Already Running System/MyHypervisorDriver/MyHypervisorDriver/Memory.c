@@ -5,11 +5,6 @@
 #include "VMX.h"
 #include "Common.h"
 
-#define ALIGNMENT_PAGE_SIZE 4096
-#define MAXIMUM_ADDRESS     0xffffffffffffffff
-#define VMCS_SIZE           4096
-#define VMXON_SIZE          4096
-
 UINT64
 VirtualToPhysicalAddress(void * Va)
 {
@@ -26,7 +21,7 @@ PhysicalToVirtualAddress(UINT64 Pa)
 }
 
 BOOLEAN
-Allocate_VMXON_Region(IN PVirtualMachineState vmState)
+AllocateVmxonRegion(PVirtualMachineState vmState)
 {
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)

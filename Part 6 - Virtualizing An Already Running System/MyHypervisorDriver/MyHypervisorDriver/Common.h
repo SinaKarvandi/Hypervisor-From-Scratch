@@ -10,10 +10,6 @@ UINT64 g_BasePointerForReturning;
 typedef void (*PFUNC)(IN ULONG ProcessorID, IN PEPTP EPTP);
 typedef void (*PFUNCTerminate)(void);
 
-extern void inline Breakpoint(void);
-extern void inline CLI_Instruction(void);
-extern void inline STI_Instruction(void);
-
 NTSTATUS
 DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath);
 VOID
@@ -200,9 +196,9 @@ USHORT  GetFs(VOID);
 USHORT  GetGs(VOID);
 USHORT  GetLdtr(VOID);
 USHORT  GetTr(VOID);
-USHORT  Get_IDT_Limit(VOID);
-USHORT  Get_GDT_Limit(VOID);
-ULONG64 Get_RFLAGS(VOID);
+USHORT  GetIdtLimit(VOID);
+USHORT  GetGdtLimit(VOID);
+ULONG64 GetRflags(VOID);
 
 typedef union _RFLAGS
 {

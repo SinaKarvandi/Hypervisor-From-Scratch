@@ -47,6 +47,11 @@ typedef union _MOV_CR_QUALIFICATION
     } Fields;
 } MOV_CR_QUALIFICATION, *PMOV_CR_QUALIFICATION;
 
+#define ALIGNMENT_PAGE_SIZE 4096
+#define MAXIMUM_ADDRESS     0xffffffffffffffff
+#define VMCS_SIZE           4096
+#define VMXON_SIZE          4096
+
 // PIN-Based Execution
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING               0x00000008
@@ -323,16 +328,16 @@ extern int ProcessorCounts;
 
 ULONG ExitReason;
 
-UINT64 gGuestRSP;
-UINT64 gGuestRIP;
+UINT64 g_GuestRSP;
+UINT64 g_GuestRIP;
 
-UINT64 gCR3_Target_Count;
+UINT64 g_Cr3TargetCount;
 
-void
-Initiate_VMX(void);
+VOID
+InitializeVmx();
 
-void
-Terminate_VMX(void);
+VOID
+TerminateVmx();
 
 UINT64
 VirtualToPhysicalAddress(void * va);
@@ -341,7 +346,7 @@ UINT64
 PhysicalToVirtualAddress(UINT64 pa);
 
 BOOLEAN
-Allocate_VMXON_Region(IN PVirtualMachineState vmState);
+AllocateVmxonRegion(PVirtualMachineState vmState);
 
 BOOLEAN
 Allocate_VMCS_Region(IN PVirtualMachineState vmState);
@@ -364,22 +369,22 @@ MathPower(int Base, int Exp);
 void
 Inline_Memory_Patcher(void);
 
-extern ULONG64 inline Get_GDT_Base(void);
+extern ULONG64 inline GetGdtBase(void);
 
-extern ULONG64 inline Get_IDT_Base(void);
+extern ULONG64 inline GetIdtBase(void);
 
 extern void inline EnableVmxOperation(void);
 
-extern void inline Restore_To_VMXOFF_State();
+extern void inline RestoreToVmxoffState();
 
-extern void inline Save_VMXOFF_State();
+extern void inline SaveVmxoffState();
 
 extern unsigned char inline INVEPT_Instruction(_In_ unsigned long type, _In_ void * descriptor);
 
 BOOLEAN
 IsVmxSupported();
 
-VOID VMExitHandler(VOID);
+VOID VmexitHandler(VOID);
 
 void
 LaunchVM(int ProcessorID, PEPTP EPTP);
@@ -390,7 +395,7 @@ Load_VMCS(IN PVirtualMachineState vmState);
 BOOLEAN
 Clear_VMCS_State(IN PVirtualMachineState vmState);
 
-VOID VM_Resumer(VOID);
+VOID VmResumeInstruction(VOID);
 
 void
 VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack);
@@ -399,9 +404,9 @@ BOOLEAN
 Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPTP EPTP, PVOID GuestStack);
 
 VOID
-VMXSaveState(IN ULONG ProcessorID, IN PEPTP EPTP);
+VmxSaveState(IN ULONG ProcessorID, IN PEPTP EPTP);
 
-VOID VMXRestoreState(VOID);
+VOID VmxRestoreState(VOID);
 
 void
 VMXOFF();
