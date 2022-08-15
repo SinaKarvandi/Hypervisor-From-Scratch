@@ -80,6 +80,9 @@ typedef union _MSR
     ULONG64 Content;
 } MSR, *PMSR;
 
+//
+// Assembly function
+//
 ULONG64
 MSRRead(ULONG32 reg);
 

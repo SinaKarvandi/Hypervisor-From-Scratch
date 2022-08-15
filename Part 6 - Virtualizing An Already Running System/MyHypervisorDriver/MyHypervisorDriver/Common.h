@@ -4,37 +4,11 @@
 #include <wdm.h>
 #include "EPT.h"
 
+//
+// Globals
+//
 UINT64 g_StackPointerForReturning;
 UINT64 g_BasePointerForReturning;
-
-typedef void (*PFUNC)(IN ULONG ProcessorID, IN PEPTP EPTP);
-typedef void (*PFUNCTerminate)(void);
-
-NTSTATUS
-DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath);
-VOID
-DrvUnload(PDRIVER_OBJECT DriverObject);
-NTSTATUS
-DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS
-DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS
-DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS
-DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS
-DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS
-DrvIOCTLDispatcher(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-VOID
-PrintChars(_In_reads_(CountChars) PCHAR BufferAddress, _In_ size_t CountChars);
-VOID
-PrintIrpInfo(PIRP Irp);
-BOOLEAN
-RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine);
-BOOLEAN
-RunOnProcessorForTerminateVMX(ULONG ProcessorNumber);
 
 /* Trap/fault mnemonics */
 #define TRAP_DIVIDE_ERROR    0
@@ -79,14 +53,8 @@ RunOnProcessorForTerminateVMX(ULONG ProcessorNumber);
 #define FLAGS_RF_MASK     (1 << 16)
 #define FLAGS_TO_ULONG(f) (*(ULONG32 *)(&f))
 
-#pragma alloc_text(INIT, DriverEntry)
-#pragma alloc_text(PAGE, DrvUnload)
-#pragma alloc_text(PAGE, DrvCreate)
-#pragma alloc_text(PAGE, DrvRead)
-#pragma alloc_text(PAGE, DrvWrite)
-#pragma alloc_text(PAGE, DrvClose)
-#pragma alloc_text(PAGE, DrvUnsupported)
-#pragma alloc_text(PAGE, DrvIOCTLDispatcher)
+#define DPL_USER   3
+#define DPL_SYSTEM 0
 
 typedef struct _CPUID
 {
@@ -156,18 +124,6 @@ typedef struct _SEGMENT_DESCRIPTOR
     UCHAR  BASE2;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
 
-enum SEGREGS
-{
-    ES = 0,
-    CS,
-    SS,
-    DS,
-    FS,
-    GS,
-    LDTR,
-    TR
-};
-
 typedef struct _GUEST_REGS
 {
     ULONG64 rax; // 0x00         // NOT VALID FOR SVM
@@ -187,18 +143,6 @@ typedef struct _GUEST_REGS
     ULONG64 r14; // 0x70
     ULONG64 r15;
 } GUEST_REGS, *PGUEST_REGS;
-
-USHORT  GetCs(VOID);
-USHORT  GetDs(VOID);
-USHORT  GetEs(VOID);
-USHORT  GetSs(VOID);
-USHORT  GetFs(VOID);
-USHORT  GetGs(VOID);
-USHORT  GetLdtr(VOID);
-USHORT  GetTr(VOID);
-USHORT  GetIdtLimit(VOID);
-USHORT  GetGdtLimit(VOID);
-ULONG64 GetRflags(VOID);
 
 typedef union _RFLAGS
 {
@@ -232,10 +176,100 @@ typedef union _RFLAGS
     ULONG64 Content;
 } RFLAGS;
 
-#define DPL_USER   3
-#define DPL_SYSTEM 0
+//
+// Enums
+//
+enum SEGREGS
+{
+    ES = 0,
+    CS,
+    SS,
+    DS,
+    FS,
+    GS,
+    LDTR,
+    TR
+};
 
-void
+//
+// Types
+//
+typedef void (*PFUNC)(IN ULONG ProcessorID, IN PEPTP EPTP);
+
+typedef void (*PFUNCTerminate)(void);
+
+//
+// Assembly functions
+//
+USHORT GetCs(VOID);
+
+USHORT GetDs(VOID);
+
+USHORT GetEs(VOID);
+
+USHORT GetSs(VOID);
+
+USHORT GetFs(VOID);
+
+USHORT GetGs(VOID);
+
+USHORT GetLdtr(VOID);
+
+USHORT GetTr(VOID);
+
+USHORT GetIdtLimit(VOID);
+
+USHORT GetGdtLimit(VOID);
+
+ULONG64 GetRflags(VOID);
+
+//
+// General functions
+//
+VOID
 SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set);
-void
+
+VOID
 GetBit(PVOID Addr, UINT64 bit);
+
+NTSTATUS
+DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath);
+
+VOID
+DrvUnload(PDRIVER_OBJECT DriverObject);
+
+NTSTATUS
+DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
+NTSTATUS
+DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
+NTSTATUS
+DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
+NTSTATUS
+DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
+NTSTATUS
+DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
+NTSTATUS
+DrvIOCTLDispatcher(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+
+VOID
+PrintChars(_In_reads_(CountChars) PCHAR BufferAddress, _In_ size_t CountChars);
+
+VOID
+PrintIrpInfo(PIRP Irp);
+
+BOOLEAN
+RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine);
+
+BOOLEAN
+RunOnProcessorForTerminateVMX(ULONG ProcessorNumber);
+
+UINT64
+VirtualToPhysicalAddress(void * va);
+
+UINT64
+PhysicalToVirtualAddress(UINT64 pa);

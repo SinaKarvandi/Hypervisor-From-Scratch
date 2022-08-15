@@ -73,10 +73,10 @@ DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
         int ProcessorID = i;
 
         // Allocating VMM Stack
-        Allocate_VMM_Stack(ProcessorID);
+        AllocateVmmStack(ProcessorID);
 
         // Allocating MSR Bit
-        Allocate_MSR_Bitmap(ProcessorID);
+        AllocateMsrBitmap(ProcessorID);
 
         RunOnProcessor(i, EPTP, VmxSaveState);
         DbgPrint("\n======================================================================================================\n", ProcessorID);
@@ -177,7 +177,7 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PCHAR              data    = "This String is from Device Driver !!!";
     size_t             datalen = strlen(data) + 1; // Length of data including null
     PMDL               Mdl     = NULL;
-    PCHAR              buffer  = NULL;
+    PCHAR              Buffer  = NULL;
 
     UNREFERENCED_PARAMETER(DeviceObject);
 
@@ -361,9 +361,9 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // system overhead for large size buffers.
         //
 
-        buffer = MmGetSystemAddressForMdlSafe(Mdl, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Mdl, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
             NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             MmUnlockPages(Mdl);
@@ -375,8 +375,8 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // Now you can safely read the data from the buffer.
         //
         DbgPrint("\tData from User (SystemAddress) : ");
-        DbgPrint(buffer);
-        PrintChars(buffer, InBufLength);
+        DbgPrint(Buffer);
+        PrintChars(Buffer, InBufLength);
 
         //
         // Once the read is over unmap and unlock the pages.
@@ -415,9 +415,9 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             break;
         }
 
-        buffer = MmGetSystemAddressForMdlSafe(Mdl, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Mdl, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
             MmUnlockPages(Mdl);
             IoFreeMdl(Mdl);
@@ -429,10 +429,10 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // Write to the buffer
         //
 
-        RtlCopyBytes(buffer, data, OutBufLength);
+        RtlCopyBytes(Buffer, data, OutBufLength);
 
-        DbgPrint("\tData to User : %s\n", buffer);
-        PrintChars(buffer, datalen);
+        DbgPrint("\tData to User : %s\n", Buffer);
+        PrintChars(Buffer, datalen);
 
         MmUnlockPages(Mdl);
 
@@ -479,17 +479,17 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // from the application to the driver.
         //
 
-        buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
             NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
         }
 
         DbgPrint("\tData from User in OutputBuffer: ");
-        DbgPrint(buffer);
-        PrintChars(buffer, OutBufLength);
+        DbgPrint(Buffer);
+        PrintChars(Buffer, OutBufLength);
 
         //
         // Return total bytes read from the output buffer.
@@ -533,9 +533,9 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // from the driver to the application.
         //
 
-        buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
+        Buffer = MmGetSystemAddressForMdlSafe(Irp->MdlAddress, NormalPagePriority | MdlMappingNoExecute);
 
-        if (!buffer)
+        if (!Buffer)
         {
             NtStatus = STATUS_INSUFFICIENT_RESOURCES;
             break;
@@ -545,10 +545,10 @@ DrvIOCTLDispatcher(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         // Write data to be sent to the user in this buffer
         //
 
-        RtlCopyBytes(buffer, data, OutBufLength);
+        RtlCopyBytes(Buffer, data, OutBufLength);
 
         DbgPrint("\tData to User : ");
-        PrintChars(buffer, datalen);
+        PrintChars(Buffer, datalen);
 
         Irp->IoStatus.Information = (OutBufLength < datalen ? OutBufLength : datalen);
 

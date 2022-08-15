@@ -1,5 +1,6 @@
 #include <ntddk.h>
 #include "VMX.h"
+#include "Common.h"
 #include "EPT.h"
 
 UINT64 g_VirtualGuestMemoryAddress;
@@ -12,13 +13,13 @@ InitializeEptp()
     //
     // Allocate EPTP
     //
-    PEPTP EPTPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    PEPTP EptPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
-    if (!EPTPointer)
+    if (!EptPointer)
     {
         return NULL;
     }
-    RtlZeroMemory(EPTPointer, PAGE_SIZE);
+    RtlZeroMemory(EptPointer, PAGE_SIZE);
 
     //
     // Allocate EPT PML4
@@ -26,7 +27,7 @@ InitializeEptp()
     PEPT_PML4E EptPml4 = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
     if (!EptPml4)
     {
-        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        ExFreePoolWithTag(EptPointer, POOLTAG);
         return NULL;
     }
     RtlZeroMemory(EptPml4, PAGE_SIZE);
@@ -38,7 +39,7 @@ InitializeEptp()
     if (!EptPdpt)
     {
         ExFreePoolWithTag(EptPml4, POOLTAG);
-        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        ExFreePoolWithTag(EptPointer, POOLTAG);
         return NULL;
     }
     RtlZeroMemory(EptPdpt, PAGE_SIZE);
@@ -52,7 +53,7 @@ InitializeEptp()
     {
         ExFreePoolWithTag(EptPdpt, POOLTAG);
         ExFreePoolWithTag(EptPml4, POOLTAG);
-        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        ExFreePoolWithTag(EptPointer, POOLTAG);
         return NULL;
     }
     RtlZeroMemory(EptPd, PAGE_SIZE);
@@ -67,7 +68,7 @@ InitializeEptp()
         ExFreePoolWithTag(EptPd, POOLTAG);
         ExFreePoolWithTag(EptPdpt, POOLTAG);
         ExFreePoolWithTag(EptPml4, POOLTAG);
-        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        ExFreePoolWithTag(EptPointer, POOLTAG);
         return NULL;
     }
     RtlZeroMemory(EptPt, PAGE_SIZE);
@@ -146,16 +147,16 @@ InitializeEptp()
     //
     // Setting up EPTP
     //
-    EPTPointer->Fields.DirtyAndAceessEnabled = 1;
-    EPTPointer->Fields.MemoryType            = 6; // 6 = Write-back (WB)
-    EPTPointer->Fields.PageWalkLength        = 3; // 4 (tables walked) - 1 = 3
-    EPTPointer->Fields.PML4Address           = (VirtualToPhysicalAddress(EptPml4) / PAGE_SIZE);
-    EPTPointer->Fields.Reserved1             = 0;
-    EPTPointer->Fields.Reserved2             = 0;
+    EptPointer->Fields.DirtyAndAceessEnabled = 1;
+    EptPointer->Fields.MemoryType            = 6; // 6 = Write-back (WB)
+    EptPointer->Fields.PageWalkLength        = 3; // 4 (tables walked) - 1 = 3
+    EptPointer->Fields.PML4Address           = (VirtualToPhysicalAddress(EptPml4) / PAGE_SIZE);
+    EptPointer->Fields.Reserved1             = 0;
+    EptPointer->Fields.Reserved2             = 0;
 
-    DbgPrint("[*] Extended Page Table Pointer allocated at %llx", EPTPointer);
+    DbgPrint("[*] Extended Page Table Pointer allocated at %llx", EptPointer);
 
-    return EPTPointer;
+    return EptPointer;
 }
 
 unsigned char

@@ -3,12 +3,14 @@
 #include "Common.h"
 #include "EPT.h"
 
-PVirtualMachineState vmState;
-int                  ProcessorCounts;
+VIRTUAL_MACHINE_STATE * g_GuestState;
+int                     g_ProcessorCounts;
 
 VOID
 InitializeVmx()
 {
+    KAFFINITY AffinityMask;
+
     if (!IsVmxSupported())
     {
         DbgPrint("[*] VMX is not supported in this machine !\n");
@@ -17,59 +19,69 @@ InitializeVmx()
 
     PAGED_CODE();
 
-    ProcessorCounts = KeQueryActiveProcessorCount(0);
-    vmState         = ExAllocatePoolWithTag(NonPagedPool, sizeof(VirtualMachineState) * ProcessorCounts, POOLTAG);
+    g_ProcessorCounts = KeQueryActiveProcessorCount(0);
+    g_GuestState      = ExAllocatePoolWithTag(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * g_ProcessorCounts, POOLTAG);
 
     DbgPrint("\n=====================================================\n");
 
-    KAFFINITY kAffinityMask;
-    for (size_t i = 0; i < ProcessorCounts; i++)
+    for (size_t i = 0; i < g_ProcessorCounts; i++)
     {
-        kAffinityMask = MathPower(2, i);
-        KeSetSystemAffinityThread(kAffinityMask);
-        // do st here !
+        AffinityMask = MathPower(2, i);
+        KeSetSystemAffinityThread(AffinityMask);
+
         DbgPrint("\t\tCurrent thread is executing in %d th logical processor.\n", i);
 
-        EnableVmxOperation(); // Enabling VMX Operation
+        //
+        // Enabling VMX Operation
+        //
+        EnableVmxOperation();
         DbgPrint("[*] VMX Operation Enabled Successfully !\n");
 
-        Allocate_VMXON_Region(&vmState[i]);
-        Allocate_VMCS_Region(&vmState[i]);
+        AllocateVmxonRegion(&g_GuestState[i]);
+        AllocateVmcsRegion(&g_GuestState[i]);
 
-        DbgPrint("[*] VMCS Region is allocated at  ===============> %llx\n", vmState[i].VMCS_REGION);
-        DbgPrint("[*] VMXON Region is allocated at ===============> %llx\n", vmState[i].VMXON_REGION);
+        DbgPrint("[*] VMCS Region is allocated at  ===============> %llx\n", g_GuestState[i].VmcsRegion);
+        DbgPrint("[*] VMXON Region is allocated at ===============> %llx\n", g_GuestState[i].VmxonRegion);
 
         DbgPrint("\n=====================================================\n");
     }
 }
 
-void
+VOID
 VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack)
 {
     DbgPrint("\n======================== Virtualizing Current System (Logical Core 0x%x) =============================\n", ProcessorID);
 
+    //
     // Clear the VMCS State
-    if (!Clear_VMCS_State(&vmState[ProcessorID]))
+    //
+    if (!ClearVmcsState(&g_GuestState[ProcessorID]))
     {
         goto ErrorReturn;
     }
 
+    //
     // Load VMCS (Set the Current VMCS)
-    if (!Load_VMCS(&vmState[ProcessorID]))
+    //
+    if (!LoadVmcs(&g_GuestState[ProcessorID]))
     {
         goto ErrorReturn;
     }
 
     DbgPrint("[*] Setting up VMCS for current system.\n");
-    Setup_VMCS_Virtualizing_Current_Machine(&vmState[ProcessorID], EPTP, GuestStack);
+    SetupVmcsAndVirtualizeMachine(&g_GuestState[ProcessorID], EPTP, GuestStack);
 
+    //
     // Change this hook (detect modification of MSRs using RDMSR & WRMSR)
+    //
     // DbgPrint("[*] Setting up MSR bitmaps.\n");
 
     DbgPrint("[*] Executing VMLAUNCH.\n");
     __vmx_vmlaunch();
 
-    // if VMLAUNCH succeed will never be here !
+    //
+    // if VMLAUNCH succeed will never be here!
+    //
     ULONG64 ErrorCode = 0;
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
@@ -79,13 +91,18 @@ VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack)
     DbgPrint("\n===================================================================\n");
 
 ReturnWithoutError:
+
     __vmx_off();
-    DbgPrint("[*] VMXOFF Executed Successfully. !\n");
+    DbgPrint("[*] VMXOFF Executed Successfully!\n");
 
     return TRUE;
+
+    //
     // Return With Error
+    //
 ErrorReturn:
-    DbgPrint("[*] Fail to setup VMCS !\n");
+    DbgPrint("[*] Fail to setup VMCS!\n");
+
     return FALSE;
 }
 
@@ -101,39 +118,46 @@ TerminateVmx()
         DbgPrint("\t\t + Terminating VMX on processor %d\n", i);
         RunOnProcessorForTerminateVMX(i);
 
+        //
         // Free the destination memory
-        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMXON_REGION));
-        MmFreeContiguousMemory(PhysicalToVirtualAddress(vmState[i].VMCS_REGION));
-        ExFreePoolWithTag(vmState[i].VMM_Stack, POOLTAG);
-        ExFreePoolWithTag(vmState[i].MSRBitMap, POOLTAG);
+        //
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmxonRegion));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmcsRegion));
+        ExFreePoolWithTag(g_GuestState[i].VmmStack, POOLTAG);
+        ExFreePoolWithTag(g_GuestState[i].MsrBitmap, POOLTAG);
     }
 
     DbgPrint("[*] VMX Operation turned off successfully. \n");
 }
 
 UINT64
-VMPTRST()
+VmptrstInstruction()
 {
-    PHYSICAL_ADDRESS vmcspa;
-    vmcspa.QuadPart = 0;
-    __vmx_vmptrst((unsigned __int64 *)&vmcspa);
+    PHYSICAL_ADDRESS VmcsPa;
 
-    DbgPrint("[*] VMPTRST %llx\n", vmcspa);
+    VmcsPa.QuadPart = 0;
+    __vmx_vmptrst((unsigned __int64 *)&VmcsPa);
+
+    DbgPrint("[*] VMPTRST %llx\n", VmcsPa);
 
     return 0;
 }
 
 BOOLEAN
-Clear_VMCS_State(IN PVirtualMachineState vmState)
+ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState)
 {
+    //
     // Clear the state of the VMCS to inactive
-    int status = __vmx_vmclear(&vmState->VMCS_REGION);
+    //
+    int Status = __vmx_vmclear(&GuestState->VmcsRegion);
 
-    DbgPrint("[*] VMCS VMCLAEAR Status is : %d\n", status);
-    if (status)
+    DbgPrint("[*] VMCS VMCLAEAR Status is : %d\n", Status);
+    if (Status)
     {
-        // Otherwise terminate the VMX
-        DbgPrint("[*] VMCS failed to clear with status %d\n", status);
+        //
+        // Otherwise terminates the VMX
+        //
+        DbgPrint("[*] VMCS failed to clear with status %d\n", Status);
         __vmx_off();
         return FALSE;
     }
@@ -141,12 +165,13 @@ Clear_VMCS_State(IN PVirtualMachineState vmState)
 }
 
 BOOLEAN
-Load_VMCS(IN PVirtualMachineState vmState)
+LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState)
 {
-    int status = __vmx_vmptrld(&vmState->VMCS_REGION);
-    if (status)
+    int Status = __vmx_vmptrld(&GuestState->VmcsRegion);
+
+    if (Status)
     {
-        DbgPrint("[*] VMCS failed with status %d\n", status);
+        DbgPrint("[*] VMCS failed with status %d\n", Status);
         return FALSE;
     }
     return TRUE;
@@ -174,15 +199,20 @@ GetSegmentDescriptor(IN PSEGMENT_SELECTOR SegmentSelector, IN USHORT Selector, I
 
     if (!(SegDesc->ATTR0 & 0x10))
     { // LA_ACCESSED
-        ULONG64 tmp;
+        ULONG64 Tmp;
+
+        //
         // this is a TSS or callgate etc, save the base high part
-        tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
-        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (tmp << 32);
+        //
+        Tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
+        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (Tmp << 32);
     }
 
     if (SegmentSelector->ATTRIBUTES.Fields.G)
     {
+        //
         // 4096-bit granularity is enabled for this segment, scale the limit
+        //
         SegmentSelector->LIMIT = (SegmentSelector->LIMIT << 12) + 0xfff;
     }
 
@@ -190,27 +220,27 @@ GetSegmentDescriptor(IN PSEGMENT_SELECTOR SegmentSelector, IN USHORT Selector, I
 }
 
 BOOLEAN
-SetGuestSelector(IN PVOID GDT_Base, IN ULONG Segment_Register, IN USHORT Selector)
+SetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
     SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG            uAccessRights;
+    ULONG            AccessRights;
 
-    GetSegmentDescriptor(&SegmentSelector, Selector, GDT_Base);
-    uAccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
+    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
 
     if (!Selector)
-        uAccessRights |= 0x10000;
+        AccessRights |= 0x10000;
 
-    __vmx_vmwrite(GUEST_ES_SELECTOR + Segment_Register * 2, Selector);
-    __vmx_vmwrite(GUEST_ES_LIMIT + Segment_Register * 2, SegmentSelector.LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segment_Register * 2, uAccessRights);
-    __vmx_vmwrite(GUEST_ES_BASE + Segment_Register * 2, SegmentSelector.BASE);
+    __vmx_vmwrite(GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    __vmx_vmwrite(GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.LIMIT);
+    __vmx_vmwrite(GUEST_ES_AR_BYTES + SegmentRegister * 2, AccessRights);
+    __vmx_vmwrite(GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.BASE);
 
     return TRUE;
 }
 
 ULONG
-AdjustControls(IN ULONG Ctl, IN ULONG Msr)
+AdjustControls(ULONG Ctl, ULONG Msr)
 {
     MSR MsrValue = {0};
 
@@ -220,37 +250,38 @@ AdjustControls(IN ULONG Ctl, IN ULONG Msr)
     return Ctl;
 }
 
-void
+VOID
 FillGuestSelectorData(
-    __in PVOID  GdtBase,
-    __in ULONG  Segreg,
-    __in USHORT Selector)
+    PVOID  GdtBase,
+    ULONG  Segreg,
+    USHORT Selector)
 {
     SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG            uAccessRights;
+    ULONG            AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    uAccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
 
     if (!Selector)
-        uAccessRights |= 0x10000;
+        AccessRights |= 0x10000;
 
     __vmx_vmwrite(GUEST_ES_SELECTOR + Segreg * 2, Selector);
     __vmx_vmwrite(GUEST_ES_LIMIT + Segreg * 2, SegmentSelector.LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segreg * 2, uAccessRights);
+    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segreg * 2, AccessRights);
     __vmx_vmwrite(GUEST_ES_BASE + Segreg * 2, SegmentSelector.BASE);
 }
 
 BOOLEAN
-Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPTP EPTP, PVOID GuestStack)
+SetupVmcsAndVirtualizeMachine(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP, PVOID GuestStack)
 {
-    BOOLEAN Status = FALSE;
-
-    // Load Extended Page Table Pointer
-    //__vmx_vmwrite(EPT_POINTER, EPTP->All);
-
+    BOOLEAN          Status          = FALSE;
     ULONG64          GdtBase         = 0;
     SEGMENT_SELECTOR SegmentSelector = {0};
+
+    //
+    // Load Extended Page Table Pointer
+    //
+    //__vmx_vmwrite(EPT_POINTER, EPTP->All);
 
     __vmx_vmwrite(HOST_ES_SELECTOR, GetEs() & 0xF8);
     __vmx_vmwrite(HOST_CS_SELECTOR, GetCs() & 0xF8);
@@ -260,13 +291,17 @@ Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPT
     __vmx_vmwrite(HOST_GS_SELECTOR, GetGs() & 0xF8);
     __vmx_vmwrite(HOST_TR_SELECTOR, GetTr() & 0xF8);
 
-    // Setting the link pointer to the required value for 4KB VMCS.
+    //
+    // Setting the link pointer to the required value for 4KB VMCS
+    //
     __vmx_vmwrite(VMCS_LINK_POINTER, ~0ULL);
 
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL, __readmsr(MSR_IA32_DEBUGCTL) & 0xFFFFFFFF);
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL_HIGH, __readmsr(MSR_IA32_DEBUGCTL) >> 32);
 
-    /* Time-stamp counter offset */
+    //
+    // Time-stamp counter offset
+    //
     __vmx_vmwrite(TSC_OFFSET, 0);
     __vmx_vmwrite(TSC_OFFSET_HIGH, 0);
 
@@ -348,22 +383,25 @@ Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPT
     __vmx_vmwrite(HOST_IA32_SYSENTER_EIP, __readmsr(MSR_IA32_SYSENTER_EIP));
     __vmx_vmwrite(HOST_IA32_SYSENTER_ESP, __readmsr(MSR_IA32_SYSENTER_ESP));
 
+    //
     // Set MSR Bitmaps
-    __vmx_vmwrite(MSR_BITMAP, vmState->MSRBitMapPhysical);
+    //
+    __vmx_vmwrite(MSR_BITMAP, GuestState->MsrBitmapPhysicalAddr);
 
     __vmx_vmwrite(GUEST_RSP, (ULONG64)GuestStack);      // setup guest sp
     __vmx_vmwrite(GUEST_RIP, (ULONG64)VmxRestoreState); // setup guest ip
 
-    __vmx_vmwrite(HOST_RSP, ((ULONG64)vmState->VMM_Stack + VMM_STACK_SIZE - 1));
+    __vmx_vmwrite(HOST_RSP, ((ULONG64)GuestState->VmmStack + VMM_STACK_SIZE - 1));
     __vmx_vmwrite(HOST_RIP, (ULONG64)VmexitHandler);
 
     Status = TRUE;
+
 Exit:
     return Status;
 }
 
 VOID
-ResumeToNextInstruction(VOID)
+ResumeToNextInstruction()
 {
     ULONG64 ResumeRIP             = NULL;
     ULONG64 CurrentRIP            = NULL;
@@ -378,33 +416,39 @@ ResumeToNextInstruction(VOID)
 }
 
 VOID
-VmResumeInstruction(VOID)
+VmResumeInstruction()
 {
+    ULONG64 ErrorCode = 0;
+
     __vmx_vmresume();
 
-    // if VMRESUME succeed will never be here !
-
-    ULONG64 ErrorCode = 0;
+    //
+    // if VMRESUME succeed will never be here!
+    //
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
     DbgPrint("[*] VMRESUME Error : 0x%llx\n", ErrorCode);
 
-    // It's such a bad error because we don't where to go !
+    //
+    // It's such a bad error because we don't where to go
     // prefer to break
+    //
     DbgBreakPoint();
 }
 
 BOOLEAN
 HandleCPUID(PGUEST_REGS state)
 {
-    INT32 cpu_info[4];
+    INT32 CpuInfo[4];
+    ULONG Mode = 0;
 
+    //
     // Check for the magic CPUID sequence, and check that it is coming from
     // Ring 0. Technically we could also check the RIP and see if this falls
     // in the expected function, but we may want to allow a separate "unload"
-    // driver or code at some point.
+    // driver or code at some point
+    //
 
-    ULONG Mode = 0;
     __vmx_vmread(GUEST_CS_SELECTOR, &Mode);
     Mode = Mode & RPL_MASK;
 
@@ -413,49 +457,63 @@ HandleCPUID(PGUEST_REGS state)
         return TRUE; // Indicates we have to turn off VMX
     }
 
+    //
     // Otherwise, issue the CPUID to the logical processor based on the indexes
-    // on the VP's GPRs.
-    __cpuidex(cpu_info, (INT32)state->rax, (INT32)state->rcx);
+    // on the VP's GPRs
+    //
+    __cpuidex(CpuInfo, (INT32)state->rax, (INT32)state->rcx);
 
-    // Check if this was CPUID 1h, which is the features request.
+    //
+    // Check if this was CPUID 1h, which is the features request
+    //
     if (state->rax == 1)
     {
+        //
         // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
-        // reserved for this indication.
-        cpu_info[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
+        // reserved for this indication
+        //
+        CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
     }
 
     else if (state->rax == HYPERV_CPUID_INTERFACE)
     {
+        //
         // Return our interface identifier
-        cpu_info[0] = 'HVFS'; // [H]yper[v]isor [F]rom [S]cratch
+        //
+        CpuInfo[0] = 'HVFS'; // [H]yper[V]isor [F]rom [S]cratch
     }
 
-    // Copy the values from the logical processor registers into the VP GPRs.
-    state->rax = cpu_info[0];
-    state->rbx = cpu_info[1];
-    state->rcx = cpu_info[2];
-    state->rdx = cpu_info[3];
+    //
+    // Copy the values from the logical processor registers into the VP GPRs
+    //
+    state->rax = CpuInfo[0];
+    state->rbx = CpuInfo[1];
+    state->rcx = CpuInfo[2];
+    state->rdx = CpuInfo[3];
 
     return FALSE; // Indicates we don't have to turn off VMX
 }
 
 VOID
-HandleControlRegisterAccess(IN PGUEST_REGS GuestState)
+HandleControlRegisterAccess(PGUEST_REGS GuestState)
 {
     ULONG ExitQualification = 0;
+
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
     PMOV_CR_QUALIFICATION data = (PMOV_CR_QUALIFICATION)&ExitQualification;
 
-    PULONG64 regPtr = (PULONG64)&GuestState->rax + data->Fields.Register;
+    PULONG64 RegPtr = (PULONG64)&GuestState->rax + data->Fields.Register;
 
-    /* Because its RSP and as we didn't save RSP correctly (because of pushes) so we have make it points to the GUEST_RSP */
+    //
+    // Because its RSP and as we didn't save RSP correctly (because of pushes)
+    // so we have make it points to the GUEST_RSP
+    //
     if (data->Fields.Register == 4)
     {
         INT64 RSP = 0;
         __vmx_vmread(GUEST_RSP, &RSP);
-        *regPtr = RSP;
+        *RegPtr = RSP;
     }
 
     switch (data->Fields.AccessType)
@@ -465,20 +523,20 @@ HandleControlRegisterAccess(IN PGUEST_REGS GuestState)
         switch (data->Fields.ControlRegister)
         {
         case 0:
-            __vmx_vmwrite(GUEST_CR0, *regPtr);
-            __vmx_vmwrite(CR0_READ_SHADOW, *regPtr);
+            __vmx_vmwrite(GUEST_CR0, *RegPtr);
+            __vmx_vmwrite(CR0_READ_SHADOW, *RegPtr);
             break;
         case 3:
 
-            __vmx_vmwrite(GUEST_CR3, (*regPtr & ~(1ULL << 63)));
+            __vmx_vmwrite(GUEST_CR3, (*RegPtr & ~(1ULL << 63)));
             /*
             if (g_Data->Features.VPID)
                 __invvpid(INV_ALL_CONTEXTS, &ctx);
                 */
             break;
         case 4:
-            __vmx_vmwrite(GUEST_CR4, *regPtr);
-            __vmx_vmwrite(CR4_READ_SHADOW, *regPtr);
+            __vmx_vmwrite(GUEST_CR4, *RegPtr);
+            __vmx_vmwrite(CR4_READ_SHADOW, *RegPtr);
             break;
         default:
             DbgPrint("[*] Unsupported register %d\n", data->Fields.ControlRegister);
@@ -492,13 +550,13 @@ HandleControlRegisterAccess(IN PGUEST_REGS GuestState)
         switch (data->Fields.ControlRegister)
         {
         case 0:
-            __vmx_vmread(GUEST_CR0, regPtr);
+            __vmx_vmread(GUEST_CR0, RegPtr);
             break;
         case 3:
-            __vmx_vmread(GUEST_CR3, regPtr);
+            __vmx_vmread(GUEST_CR3, RegPtr);
             break;
         case 4:
-            __vmx_vmread(GUEST_CR4, regPtr);
+            __vmx_vmread(GUEST_CR4, RegPtr);
             break;
         default:
             DbgPrint("[*] Unsupported register %d\n", data->Fields.ControlRegister);
@@ -518,6 +576,7 @@ HandleMSRRead(PGUEST_REGS GuestRegs)
 {
     MSR msr = {0};
 
+    //
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
     //
     // The "use MSR bitmaps" VM-execution control is 0.
@@ -526,10 +585,13 @@ HandleMSRRead(PGUEST_REGS GuestRegs)
     //   where n is the value of ECX.
     // The value of ECX is in the range C0000000H - C0001FFFH and bit n in read bitmap for high MSRs is 1,
     //   where n is the value of ECX & 00001FFFH.
+    //
 
     /*if (((GuestRegs->rcx <= 0x00001FFF)) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
     {*/
+
     msr.Content = MSRRead((ULONG)GuestRegs->rcx);
+
     /*}
     else
     {
@@ -545,44 +607,50 @@ HandleMSRWrite(PGUEST_REGS GuestRegs)
 {
     MSR msr = {0};
 
+    //
     // Check for sanity of MSR
+    //
     /*if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
     {*/
+
     msr.Low  = (ULONG)GuestRegs->rax;
     msr.High = (ULONG)GuestRegs->rdx;
     MSRWrite((ULONG)GuestRegs->rcx, msr.Content);
+
     /*}*/
 }
 
 BOOLEAN
-SetMSRBitmap(ULONG64 msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+SetMsrBitmap(ULONG64 Msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {
+        //
         // Invalid Command
+        //
         return FALSE;
     }
 
-    if (msr <= 0x00001FFF)
+    if (Msr <= 0x00001FFF)
     {
         if (ReadDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap, msr, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap, Msr, TRUE);
         }
         if (WriteDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap + 2048, msr, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap + 2048, Msr, TRUE);
         }
     }
-    else if ((0xC0000000 <= msr) && (msr <= 0xC0001FFF))
+    else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap + 1024, msr - 0xC0000000, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap + 1024, Msr - 0xC0000000, TRUE);
         }
         if (WriteDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap + 3072, msr - 0xC0000000, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap + 3072, Msr - 0xC0000000, TRUE);
         }
     }
     else
@@ -592,13 +660,17 @@ SetMSRBitmap(ULONG64 msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDet
     return TRUE;
 }
 
-// Index starts from 0 , not 1
 BOOLEAN
 SetTargetControls(UINT64 CR3, UINT64 Index)
 {
+    //
+    // Index starts from 0 , not 1
+    //
     if (Index >= 4)
     {
+        //
         // Not supported for more than 4 , at least for now :(
+        //
         return FALSE;
     }
 
@@ -608,7 +680,9 @@ SetTargetControls(UINT64 CR3, UINT64 Index)
     {
         if (g_Cr3TargetCount <= 0)
         {
+            //
             // Invalid command as g_Cr3TargetCount cannot be less than zero
+            // s
             return FALSE;
         }
         else
@@ -669,7 +743,9 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
     ExitReason &= 0xffff;
 
+    //
     // Debug purpose
+    //
     // DbgPrint("[*] VM_EXIT_REASON : 0x%llx\n", ExitReason);
     // DbgPrint("[*] EXIT_QUALIFICATION : 0x%llx\n", ExitQualification);
 
@@ -681,11 +757,12 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
         break;
     }
 
-        // 25.1.2  Instructions That Cause VM Exits Unconditionally
-        // The following instructions cause VM exits when they are executed in VMX non-root operation: CPUID, GETSEC,
-        // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID,
-        // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
-
+    //
+    // 25.1.2  Instructions That Cause VM Exits Unconditionally
+    // The following instructions cause VM exits when they are executed in VMX non-root operation: CPUID, GETSEC,
+    // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID,
+    // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
+    //
     case EXIT_REASON_VMCLEAR:
     case EXIT_REASON_VMPTRLD:
     case EXIT_REASON_VMPTRST:
@@ -717,8 +794,6 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_MSR_READ:
     {
-        // DbgBreakPoint();
-
         ULONG ECX = GuestRegs->rcx & 0xffffffff;
         // DbgPrint("[*] RDMSR (based on bitmap) : 0x%llx\n", ECX);
         HandleMSRRead(GuestRegs);
@@ -727,13 +802,10 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_MSR_LOADING:
     {
-        // DbgBreakPoint();
         break;
     }
     case EXIT_REASON_MSR_WRITE:
     {
-        // DbgBreakPoint();
-
         ULONG ECX = GuestRegs->rcx & 0xffffffff;
         // DbgPrint("[*] WRMSR (based on bitmap) : 0x%llx\n", ECX);
         HandleMSRWrite(GuestRegs);
@@ -775,7 +847,6 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     }
     default:
     {
-        // DbgBreakPoint();
         break;
     }
     }
@@ -786,4 +857,3 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
 
     return Status;
 }
-//-----------------------------------------------------------------------------//

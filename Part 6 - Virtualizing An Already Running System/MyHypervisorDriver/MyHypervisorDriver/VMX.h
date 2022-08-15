@@ -2,50 +2,9 @@
 #include <ntddk.h>
 #include "EPT.h"
 
-typedef struct _VirtualMachineState
-{
-    UINT64 VMXON_REGION;      // VMXON region
-    UINT64 VMCS_REGION;       // VMCS region
-    UINT64 EPTP;              // Extended-Page-Table Pointer
-    UINT64 VMM_Stack;         // Stack for VMM in VM-Exit State
-    UINT64 MSRBitMap;         // MSRBitMap Virtual Address
-    UINT64 MSRBitMapPhysical; // MSRBitMap Physical Address
-} VirtualMachineState, *PVirtualMachineState;
-
-typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
-{
-    union
-    {
-        ULONG64 Flags;
-
-        struct
-        {
-            ULONG64 SizeOfAccess : 3;
-            ULONG64 AccessType : 1;
-            ULONG64 StringInstruction : 1;
-            ULONG64 RepPrefixed : 1;
-            ULONG64 OperandEncoding : 1;
-            ULONG64 Reserved1 : 9;
-            ULONG64 PortNumber : 16;
-        };
-    };
-} VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
-
-typedef union _MOV_CR_QUALIFICATION
-{
-    ULONG_PTR All;
-    struct
-    {
-        ULONG ControlRegister : 4;
-        ULONG AccessType : 2;
-        ULONG LMSWOperandType : 1;
-        ULONG Reserved1 : 1;
-        ULONG Register : 4;
-        ULONG Reserved2 : 4;
-        ULONG LMSWSourceData : 16;
-        ULONG Reserved3;
-    } Fields;
-} MOV_CR_QUALIFICATION, *PMOV_CR_QUALIFICATION;
+#define POOLTAG        0x48564653 // [H]yper[V]isor [F]rom [S]cratch (HVFS)
+#define VMM_STACK_SIZE 0x8000
+#define RPL_MASK       3
 
 #define ALIGNMENT_PAGE_SIZE 4096
 #define MAXIMUM_ADDRESS     0xffffffffffffffff
@@ -101,6 +60,84 @@ typedef union _MOV_CR_QUALIFICATION
 #define VM_ENTRY_SMM                0x00000400
 #define VM_ENTRY_DEACT_DUAL_MONITOR 0x00000800
 #define VM_ENTRY_LOAD_GUEST_PAT     0x00004000
+
+#define EXIT_REASON_EXCEPTION_NMI                0
+#define EXIT_REASON_EXTERNAL_INTERRUPT           1
+#define EXIT_REASON_TRIPLE_FAULT                 2
+#define EXIT_REASON_INIT                         3
+#define EXIT_REASON_SIPI                         4
+#define EXIT_REASON_IO_SMI                       5
+#define EXIT_REASON_OTHER_SMI                    6
+#define EXIT_REASON_PENDING_VIRT_INTR            7
+#define EXIT_REASON_PENDING_VIRT_NMI             8
+#define EXIT_REASON_TASK_SWITCH                  9
+#define EXIT_REASON_CPUID                        10
+#define EXIT_REASON_GETSEC                       11
+#define EXIT_REASON_HLT                          12
+#define EXIT_REASON_INVD                         13
+#define EXIT_REASON_INVLPG                       14
+#define EXIT_REASON_RDPMC                        15
+#define EXIT_REASON_RDTSC                        16
+#define EXIT_REASON_RSM                          17
+#define EXIT_REASON_VMCALL                       18
+#define EXIT_REASON_VMCLEAR                      19
+#define EXIT_REASON_VMLAUNCH                     20
+#define EXIT_REASON_VMPTRLD                      21
+#define EXIT_REASON_VMPTRST                      22
+#define EXIT_REASON_VMREAD                       23
+#define EXIT_REASON_VMRESUME                     24
+#define EXIT_REASON_VMWRITE                      25
+#define EXIT_REASON_VMXOFF                       26
+#define EXIT_REASON_VMXON                        27
+#define EXIT_REASON_CR_ACCESS                    28
+#define EXIT_REASON_DR_ACCESS                    29
+#define EXIT_REASON_IO_INSTRUCTION               30
+#define EXIT_REASON_MSR_READ                     31
+#define EXIT_REASON_MSR_WRITE                    32
+#define EXIT_REASON_INVALID_GUEST_STATE          33
+#define EXIT_REASON_MSR_LOADING                  34
+#define EXIT_REASON_MWAIT_INSTRUCTION            36
+#define EXIT_REASON_MONITOR_TRAP_FLAG            37
+#define EXIT_REASON_MONITOR_INSTRUCTION          39
+#define EXIT_REASON_PAUSE_INSTRUCTION            40
+#define EXIT_REASON_MCE_DURING_VMENTRY           41
+#define EXIT_REASON_TPR_BELOW_THRESHOLD          43
+#define EXIT_REASON_APIC_ACCESS                  44
+#define EXIT_REASON_ACCESS_GDTR_OR_IDTR          46
+#define EXIT_REASON_ACCESS_LDTR_OR_TR            47
+#define EXIT_REASON_EPT_VIOLATION                48
+#define EXIT_REASON_EPT_MISCONFIG                49
+#define EXIT_REASON_INVEPT                       50
+#define EXIT_REASON_RDTSCP                       51
+#define EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED 52
+#define EXIT_REASON_INVVPID                      53
+#define EXIT_REASON_WBINVD                       54
+#define EXIT_REASON_XSETBV                       55
+#define EXIT_REASON_APIC_WRITE                   56
+#define EXIT_REASON_RDRAND                       57
+#define EXIT_REASON_INVPCID                      58
+#define EXIT_REASON_RDSEED                       61
+#define EXIT_REASON_PML_FULL                     62
+#define EXIT_REASON_XSAVES                       63
+#define EXIT_REASON_XRSTORS                      64
+#define EXIT_REASON_PCOMMIT                      65
+
+#define HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS 0x40000000
+#define HYPERV_CPUID_INTERFACE                0x40000001
+#define HYPERV_CPUID_VERSION                  0x40000002
+#define HYPERV_CPUID_FEATURES                 0x40000003
+#define HYPERV_CPUID_ENLIGHTMENT_INFO         0x40000004
+#define HYPERV_CPUID_IMPLEMENT_LIMITS         0x40000005
+
+#define HYPERV_HYPERVISOR_PRESENT_BIT 0x80000000
+#define HYPERV_CPUID_MIN              0x40000005
+#define HYPERV_CPUID_MAX              0x4000ffff
+
+// Exit Qualifications for MOV for Control Register Access
+#define TYPE_MOV_TO_CR   0
+#define TYPE_MOV_FROM_CR 1
+#define TYPE_CLTS        2
+#define TYPE_LMSW        3
 
 enum VMCS_FIELDS
 {
@@ -238,136 +275,98 @@ enum VMCS_FIELDS
     HOST_RIP                      = 0x00006c16,
 };
 
-#define EXIT_REASON_EXCEPTION_NMI                0
-#define EXIT_REASON_EXTERNAL_INTERRUPT           1
-#define EXIT_REASON_TRIPLE_FAULT                 2
-#define EXIT_REASON_INIT                         3
-#define EXIT_REASON_SIPI                         4
-#define EXIT_REASON_IO_SMI                       5
-#define EXIT_REASON_OTHER_SMI                    6
-#define EXIT_REASON_PENDING_VIRT_INTR            7
-#define EXIT_REASON_PENDING_VIRT_NMI             8
-#define EXIT_REASON_TASK_SWITCH                  9
-#define EXIT_REASON_CPUID                        10
-#define EXIT_REASON_GETSEC                       11
-#define EXIT_REASON_HLT                          12
-#define EXIT_REASON_INVD                         13
-#define EXIT_REASON_INVLPG                       14
-#define EXIT_REASON_RDPMC                        15
-#define EXIT_REASON_RDTSC                        16
-#define EXIT_REASON_RSM                          17
-#define EXIT_REASON_VMCALL                       18
-#define EXIT_REASON_VMCLEAR                      19
-#define EXIT_REASON_VMLAUNCH                     20
-#define EXIT_REASON_VMPTRLD                      21
-#define EXIT_REASON_VMPTRST                      22
-#define EXIT_REASON_VMREAD                       23
-#define EXIT_REASON_VMRESUME                     24
-#define EXIT_REASON_VMWRITE                      25
-#define EXIT_REASON_VMXOFF                       26
-#define EXIT_REASON_VMXON                        27
-#define EXIT_REASON_CR_ACCESS                    28
-#define EXIT_REASON_DR_ACCESS                    29
-#define EXIT_REASON_IO_INSTRUCTION               30
-#define EXIT_REASON_MSR_READ                     31
-#define EXIT_REASON_MSR_WRITE                    32
-#define EXIT_REASON_INVALID_GUEST_STATE          33
-#define EXIT_REASON_MSR_LOADING                  34
-#define EXIT_REASON_MWAIT_INSTRUCTION            36
-#define EXIT_REASON_MONITOR_TRAP_FLAG            37
-#define EXIT_REASON_MONITOR_INSTRUCTION          39
-#define EXIT_REASON_PAUSE_INSTRUCTION            40
-#define EXIT_REASON_MCE_DURING_VMENTRY           41
-#define EXIT_REASON_TPR_BELOW_THRESHOLD          43
-#define EXIT_REASON_APIC_ACCESS                  44
-#define EXIT_REASON_ACCESS_GDTR_OR_IDTR          46
-#define EXIT_REASON_ACCESS_LDTR_OR_TR            47
-#define EXIT_REASON_EPT_VIOLATION                48
-#define EXIT_REASON_EPT_MISCONFIG                49
-#define EXIT_REASON_INVEPT                       50
-#define EXIT_REASON_RDTSCP                       51
-#define EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED 52
-#define EXIT_REASON_INVVPID                      53
-#define EXIT_REASON_WBINVD                       54
-#define EXIT_REASON_XSETBV                       55
-#define EXIT_REASON_APIC_WRITE                   56
-#define EXIT_REASON_RDRAND                       57
-#define EXIT_REASON_INVPCID                      58
-#define EXIT_REASON_RDSEED                       61
-#define EXIT_REASON_PML_FULL                     62
-#define EXIT_REASON_XSAVES                       63
-#define EXIT_REASON_XRSTORS                      64
-#define EXIT_REASON_PCOMMIT                      65
+typedef struct _VIRTUAL_MACHINE_STATE
+{
+    UINT64 VmxonRegion;           // VMXON region
+    UINT64 VmcsRegion;            // VMCS region
+    UINT64 Eptp;                  // Extended-Page-Table Pointer
+    UINT64 VmmStack;              // Stack for VMM in VM-Exit State
+    UINT64 MsrBitmap;             // MSRBitMap Virtual Address
+    UINT64 MsrBitmapPhysicalAddr; // MSRBitMap Physical Address
 
-#define HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS 0x40000000
-#define HYPERV_CPUID_INTERFACE                0x40000001
-#define HYPERV_CPUID_VERSION                  0x40000002
-#define HYPERV_CPUID_FEATURES                 0x40000003
-#define HYPERV_CPUID_ENLIGHTMENT_INFO         0x40000004
-#define HYPERV_CPUID_IMPLEMENT_LIMITS         0x40000005
+} VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
-#define HYPERV_HYPERVISOR_PRESENT_BIT 0x80000000
-#define HYPERV_CPUID_MIN              0x40000005
-#define HYPERV_CPUID_MAX              0x4000ffff
+typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
+{
+    union
+    {
+        ULONG64 Flags;
 
-// Exit Qualifications for MOV for Control Register Access
-#define TYPE_MOV_TO_CR   0
-#define TYPE_MOV_FROM_CR 1
-#define TYPE_CLTS        2
-#define TYPE_LMSW        3
+        struct
+        {
+            ULONG64 SizeOfAccess : 3;
+            ULONG64 AccessType : 1;
+            ULONG64 StringInstruction : 1;
+            ULONG64 RepPrefixed : 1;
+            ULONG64 OperandEncoding : 1;
+            ULONG64 Reserved1 : 9;
+            ULONG64 PortNumber : 16;
+        };
+    };
+} VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
 
-extern PVirtualMachineState vmState;
+typedef union _MOV_CR_QUALIFICATION
+{
+    ULONG_PTR All;
+    struct
+    {
+        ULONG ControlRegister : 4;
+        ULONG AccessType : 2;
+        ULONG LMSWOperandType : 1;
+        ULONG Reserved1 : 1;
+        ULONG Register : 4;
+        ULONG Reserved2 : 4;
+        ULONG LMSWSourceData : 16;
+        ULONG Reserved3;
+    } Fields;
+} MOV_CR_QUALIFICATION, *PMOV_CR_QUALIFICATION;
+
+//
+// Globals
+//
+extern VIRTUAL_MACHINE_STATE * g_GuestState;
 
 extern UINT64 VirtualGuestMemoryAddress;
 
-extern int ProcessorCounts;
-
-#define POOLTAG        0x48564653 // [H]yper[V]isor [F]rom [S]cratch (HVFS)
-#define VMM_STACK_SIZE 0x8000
-#define RPL_MASK       3
+extern int g_ProcessorCounts;
 
 ULONG ExitReason;
 
 UINT64 g_GuestRSP;
+
 UINT64 g_GuestRIP;
 
 UINT64 g_Cr3TargetCount;
 
+//
+// Functions
+//
 VOID
 InitializeVmx();
 
 VOID
 TerminateVmx();
 
-UINT64
-VirtualToPhysicalAddress(void * va);
-
-UINT64
-PhysicalToVirtualAddress(UINT64 pa);
+BOOLEAN
+AllocateVmxonRegion(VIRTUAL_MACHINE_STATE * GuestState);
 
 BOOLEAN
-AllocateVmxonRegion(PVirtualMachineState vmState);
+AllocateVmcsRegion(VIRTUAL_MACHINE_STATE * GuestState);
 
 BOOLEAN
-Allocate_VMCS_Region(IN PVirtualMachineState vmState);
+AllocateVmmStack(int ProcessorID);
 
 BOOLEAN
-Allocate_VMM_Stack(int ProcessorID);
-
-BOOLEAN
-Allocate_MSR_Bitmap(int ProcessorID);
+AllocateMsrBitmap(int ProcessorID);
 
 UINT64
 VMPTRST(void);
 
 void
-Run_On_Each_Logical_Processor(void * (*FunctionPtr)());
+RunEachLogicalProcessor(void * (*FunctionPtr)());
 
 int
 MathPower(int Base, int Exp);
-
-void
-Inline_Memory_Patcher(void);
 
 extern ULONG64 inline GetGdtBase(void);
 
@@ -379,37 +378,35 @@ extern void inline RestoreToVmxoffState();
 
 extern void inline SaveVmxoffState();
 
-extern unsigned char inline INVEPT_Instruction(_In_ unsigned long type, _In_ void * descriptor);
-
 BOOLEAN
 IsVmxSupported();
 
-VOID VmexitHandler(VOID);
-
-void
-LaunchVM(int ProcessorID, PEPTP EPTP);
+VOID
+VmexitHandler();
 
 BOOLEAN
-Load_VMCS(IN PVirtualMachineState vmState);
+LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState);
 
 BOOLEAN
-Clear_VMCS_State(IN PVirtualMachineState vmState);
+ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState);
 
-VOID VmResumeInstruction(VOID);
+VOID
+VmResumeInstruction();
 
-void
+VOID
 VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack);
 
 BOOLEAN
-Setup_VMCS_Virtualizing_Current_Machine(IN PVirtualMachineState vmState, IN PEPTP EPTP, PVOID GuestStack);
+SetupVmcsAndVirtualizeMachine(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP, PVOID GuestStack);
 
 VOID
-VmxSaveState(IN ULONG ProcessorID, IN PEPTP EPTP);
+VmxSaveState(ULONG ProcessorID, PEPTP EPTP);
 
-VOID VmxRestoreState(VOID);
+VOID
+VmxRestoreState();
 
-void
-VMXOFF();
+VOID
+VmxoffInstruction();
 
 BOOLEAN
-SetMSRBitmap(ULONG64 msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
+SetMsrBitmap(ULONG64 msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
