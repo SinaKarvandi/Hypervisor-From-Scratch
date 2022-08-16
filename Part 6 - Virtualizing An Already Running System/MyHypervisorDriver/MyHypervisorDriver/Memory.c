@@ -155,7 +155,7 @@ AllocateVmmStack(int ProcessorID)
 
     if (g_GuestState[ProcessorID].VmmStack == NULL)
     {
-        DbgPrint("[*] Error in allocating VMM Stack.\n");
+        DbgPrint("[*] Error in allocating VMM Stack\n");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);

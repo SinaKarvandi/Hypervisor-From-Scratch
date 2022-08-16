@@ -25,10 +25,10 @@ VmxSaveState PROC
 
 	SUB RSP, 28h
 
-	; It a x64 FastCall function but as long as the definition of SaveState is same
-	; as VirtualizeCurrentSystem so we RCX & RDX both have a correct value
-	; But VirtualizeCurrentSystem also has a stack so it's the third argument
-	; and according to FastCall it should be in R8
+	; It a x64 FastCall function but as long as the definition of SaveState is the same
+	; as VirtualizeCurrentSystem, so we RCX & RDX both have a correct value
+	; But VirtualizeCurrentSystem also has a stack, so it's the third argument
+	; and according to FastCall, it should be in R8
 
 	MOV R8, RSP
 

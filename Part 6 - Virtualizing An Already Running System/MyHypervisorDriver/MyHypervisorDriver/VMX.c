@@ -80,7 +80,7 @@ VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack)
     __vmx_vmlaunch();
 
     //
-    // if VMLAUNCH succeed will never be here!
+    // if VMLAUNCH succeeds will never be here!
     //
     ULONG64 ErrorCode = 0;
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
@@ -423,7 +423,7 @@ VmResumeInstruction()
     __vmx_vmresume();
 
     //
-    // if VMRESUME succeed will never be here!
+    // if VMRESUME succeeds will never be here!
     //
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
@@ -507,7 +507,7 @@ HandleControlRegisterAccess(PGUEST_REGS GuestState)
 
     //
     // Because its RSP and as we didn't save RSP correctly (because of pushes)
-    // so we have make it points to the GUEST_RSP
+    // so we have to make it points to the GUEST_RSP
     //
     if (data->Fields.Register == 4)
     {
@@ -571,7 +571,7 @@ HandleControlRegisterAccess(PGUEST_REGS GuestState)
     }
 }
 
-void
+VOID
 HandleMSRRead(PGUEST_REGS GuestRegs)
 {
     MSR msr = {0};
@@ -602,13 +602,13 @@ HandleMSRRead(PGUEST_REGS GuestRegs)
     GuestRegs->rdx = msr.High;
 }
 
-void
+VOID
 HandleMSRWrite(PGUEST_REGS GuestRegs)
 {
     MSR msr = {0};
 
     //
-    // Check for sanity of MSR
+    // Check for the sanity of MSR
     //
     /*if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
     {*/
@@ -795,6 +795,7 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_MSR_READ:
     {
         ULONG ECX = GuestRegs->rcx & 0xffffffff;
+
         // DbgPrint("[*] RDMSR (based on bitmap) : 0x%llx\n", ECX);
         HandleMSRRead(GuestRegs);
 
@@ -807,6 +808,7 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_MSR_WRITE:
     {
         ULONG ECX = GuestRegs->rcx & 0xffffffff;
+
         // DbgPrint("[*] WRMSR (based on bitmap) : 0x%llx\n", ECX);
         HandleMSRWrite(GuestRegs);
 
