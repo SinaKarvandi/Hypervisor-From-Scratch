@@ -30,9 +30,9 @@
   </p>
 </p>
 
-# Hypervisor From Scratch
+**Important Notice**: The **Hypervisor From Scratch** tutorial is completely revised in **August 2022**. Codes from all parts are updated, unnecessary details are removed, and new explanations and materials are added to the tutorial.
 
-**These articles are entirely revised and updated (new materials and additional explanations added) in August 2022.**
+# Hypervisor From Scratch
 
 Source code of a multiple series of tutorials about the hypervisor. 
 
