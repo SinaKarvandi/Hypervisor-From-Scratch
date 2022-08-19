@@ -529,10 +529,11 @@ HandleControlRegisterAccess(PGUEST_REGS GuestState)
         case 3:
 
             __vmx_vmwrite(GUEST_CR3, (*RegPtr & ~(1ULL << 63)));
-            /*
-            if (g_Data->Features.VPID)
-                __invvpid(INV_ALL_CONTEXTS, &ctx);
-                */
+
+            //
+            // In the case of using EPT, the context of EPT/VPID should be
+            // invalidated
+            //
             break;
         case 4:
             __vmx_vmwrite(GUEST_CR4, *RegPtr);
@@ -587,16 +588,14 @@ HandleMSRRead(PGUEST_REGS GuestRegs)
     //   where n is the value of ECX & 00001FFFH.
     //
 
-    /*if (((GuestRegs->rcx <= 0x00001FFF)) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
-    {*/
-
-    msr.Content = MSRRead((ULONG)GuestRegs->rcx);
-
-    /*}
+    if (((GuestRegs->rcx <= 0x00001FFF)) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
+    {
+        msr.Content = MSRRead((ULONG)GuestRegs->rcx);
+    }
     else
     {
         msr.Content = 0;
-    }*/
+    }
 
     GuestRegs->rax = msr.Low;
     GuestRegs->rdx = msr.High;
@@ -610,14 +609,12 @@ HandleMSRWrite(PGUEST_REGS GuestRegs)
     //
     // Check for the sanity of MSR
     //
-    /*if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
-    {*/
-
-    msr.Low  = (ULONG)GuestRegs->rax;
-    msr.High = (ULONG)GuestRegs->rdx;
-    MSRWrite((ULONG)GuestRegs->rcx, msr.Content);
-
-    /*}*/
+    if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
+    {
+        msr.Low  = (ULONG)GuestRegs->rax;
+        msr.High = (ULONG)GuestRegs->rdx;
+        MSRWrite((ULONG)GuestRegs->rcx, msr.Content);
+    }
 }
 
 BOOLEAN
