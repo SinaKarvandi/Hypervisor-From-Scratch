@@ -20,7 +20,7 @@ extern int                     g_ProcessorCounts;
 BOOLEAN
 IsVmxSupported();
 
-VOID
+BOOLEAN
 InitializeVmx();
 
 VOID
