@@ -30,6 +30,8 @@
   </p>
 </p>
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 **Notice**: The _**Hypervisor From Scratch**_ tutorial is completely revised in **August 2022**. Codes from all parts are updated, unnecessary details are removed, and new explanations and materials are added to the tutorial.
 
 # Hypervisor From Scratch
@@ -99,12 +101,12 @@ If you want to know more about hypervisors, you can visit the [awesome virtualiz
 - <a href="https://twitter.com/standa_t">Satoshi Tanda</a><br />
 - <a href="https://twitter.com/Liran_Alon">Liran Alon</a><br />
 - <a href="https://twitter.com/gerhart_x">gerhart</a><br />
-- <a href="https://twitter.com/daax_rynd">Daax Rynd</a><br />
+- <a href="https://twitter.com/@daaximus">Daax</a><br />
 - <a href="https://twitter.com/LordNoteworthy">Noteworthy</a><br />
 - <a href="https://twitter.com/ivansprundel">ivs</a><br />
 - <a href="https://twitter.com/honorary_bot">Artem Shishkin</a><br />
-- <a href="https://twitter.com/Shahriare8">Shahriar</a><br />
-- <a href="https://twitter.com/amdgzi">Ahmad</a><br />
+- <a href="https://twitter.com/shahriar_ee">Shahriar</a><br />
+- <a href="https://twitter.com/ahmadgzi">Ahmad</a><br />
 - ...and many other people who helped to solve the problems</a><br />
 
 
