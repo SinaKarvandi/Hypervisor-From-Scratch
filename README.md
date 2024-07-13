@@ -30,7 +30,7 @@
   </p>
 </p>
 
-**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications. A free and comprehensive tutorial on hypervisor-based reverse engineering is available at [OpenSecurityTraining2's website](https://ost2.fyi/dbg3301) (_preferred_) and [YouTube](https://www.youtube.com/playlist?list=PLUFkSN0XLZ-kF1f143wlw8ujlH2A45nZY), which demonstrates numerous practical examples on how to utilize hypervisors for reverse engineering.**
 
 **Notice**: The _**Hypervisor From Scratch**_ tutorial is completely revised in **August 2022**. Codes from all parts are updated, unnecessary details are removed, and new explanations and materials are added to the tutorial.
 
