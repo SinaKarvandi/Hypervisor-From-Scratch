@@ -72,13 +72,11 @@ BOOLEAN BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routin
 void SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set) {
 
 	UINT64 byte;
-	UINT64 temp;
 	UINT64 n;
 	BYTE* Addr2;
 
 	byte = bit / 8;
-	temp = bit % 8;
-	n = 7 - temp;
+	n = bit % 8;
 
 	Addr2 = Addr;
 
