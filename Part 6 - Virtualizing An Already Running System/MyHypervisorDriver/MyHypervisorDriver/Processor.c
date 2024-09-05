@@ -100,8 +100,7 @@ SetBit(PVOID Addr, UINT64 Bit, BOOLEAN Set)
     PAGED_CODE();
 
     UINT64 Byte = Bit / 8;
-    UINT64 Temp = Bit % 8;
-    UINT64 N    = 7 - Temp;
+    UINT64 N = Bit % 8;
 
     BYTE * Addr2 = Addr;
     if (Set)
