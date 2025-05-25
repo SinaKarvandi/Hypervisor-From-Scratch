@@ -557,7 +557,7 @@ BOOLEAN EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunct
 	/* Determine the number of instructions necessary to overwrite using Length Disassembler Engine */
 	for (SizeOfHookedInstructions = 0;
 		SizeOfHookedInstructions < 13;
-		SizeOfHookedInstructions += LDE(TargetFunction, 64))
+		SizeOfHookedInstructions += LDE((UINT64)TargetFunction + SizeOfHookedInstructions, 64))
 	{
 		// Get the full size of instructions necessary to copy
 	}
