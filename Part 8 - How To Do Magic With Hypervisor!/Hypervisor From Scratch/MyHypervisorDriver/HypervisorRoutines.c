@@ -104,7 +104,6 @@ ULONG HvAdjustControls(ULONG Ctl, ULONG Msr)
 	return Ctl;
 }
 
-
 /* Set guest's selector registers */
 BOOLEAN HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
