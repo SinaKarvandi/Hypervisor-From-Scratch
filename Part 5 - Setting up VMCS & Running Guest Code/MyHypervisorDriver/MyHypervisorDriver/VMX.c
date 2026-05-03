@@ -44,6 +44,8 @@ InitiateVmx()
     }
 }
 
+#pragma optimize("gy", on)
+
 VOID
 LaunchVm(int ProcessorID, PEPTP EPTP)
 {
@@ -131,6 +133,8 @@ ErrorReturn:
     DbgPrint("[*] Fail to setup VMCS !\n");
     return FALSE;
 }
+
+#pragma optimize("", on)
 
 VOID
 TerminateVmx()
